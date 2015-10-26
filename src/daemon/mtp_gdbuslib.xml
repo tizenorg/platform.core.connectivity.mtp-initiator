@@ -1,0 +1,138 @@
+<!--
+  org.tizen.mtp
+-->
+
+<node>
+	<interface name="org.tizen.mtp.manager">
+		<method name="GetDeviceList">
+			<arg type="i" name="device_num" direction="out" />
+			<arg type="aa{sv}" name="device_list" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetDeviceHandle">
+			<arg type="i" name="bus_location" direction="in" />
+			<arg type="i" name="device_handle" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetStorageIds">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_num" direction="out" />
+			<arg type="aa{sv}" name="storage_ids" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetObjectHandles">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="i" name="format" direction="in" />
+			<arg type="i" name="parent_object_handle" direction="in" />
+			<arg type="i" name="object_num" direction="out" />
+			<arg type="aa{sv}" name="object_handles" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetObject">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="object_handle" direction="in" />
+			<arg type="s" name="dest_path" direction="in" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetThumbnail">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="object_handle" direction="in" />
+			<arg type="s" name="dest_path" direction="in" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="DeleteObject">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="object_handle" direction="in" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<signal name="MtpEvent">
+			<arg type="i" name="event" />
+			<arg type="i" name="arg1" />
+		</signal>
+	</interface>
+	<interface name="org.tizen.mtp.deviceinfo">
+		<method name="GetManufacturername">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="s" name="manufacturer_name" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetModelname">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="s" name="model_name" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetSerialnumber">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="s" name="serial_number" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetDeviceversion">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="s" name="device_version" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+	</interface>
+	<interface name="org.tizen.mtp.storageinfo">
+		<method name="GetDescription">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="s" name="description" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetFreeSpace">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="t" name="free_space" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetMaxCapacity">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="t" name="max_capacity" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetStorageType">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="i" name="storage_type" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+
+		<method name="GetVolumeIdentifier">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="storage_id" direction="in" />
+			<arg type="s" name="volume_identifier" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+	</interface>
+	<interface name="org.tizen.mtp.objectinfo">
+		<method name="GetProperty">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="object_handle" direction="in" />
+			<arg type="i" name="property" direction="in" />
+			<arg type="i" name="property_value" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+		<method name="GetPropertyString">
+			<arg type="i" name="device_handle" direction="in" />
+			<arg type="i" name="object_handle" direction="in" />
+			<arg type="i" name="property" direction="in" />
+			<arg type="s" name="property_value" direction="out" />
+			<arg type="i" name="result" direction="out" />
+		</method>
+	</interface>
+</node>
