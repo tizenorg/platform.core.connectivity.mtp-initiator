@@ -324,8 +324,10 @@ static void* __event_thread(gpointer dev, gpointer data)
 	/* TODO : deactivate signal to clients using g_idle_add */
 	__print_device_list(mtp_ctx);
 
-	if (mtp_ctx->device_list->device_num == 0)
+	if (mtp_ctx->device_list->device_num == 0) {
+		mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DAEMON_TERMINATED, device, mtp_ctx);
 		g_main_loop_quit(mtp_ctx->main_loop);
+	}
 
 	return NULL;
 }
@@ -358,14 +360,6 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		device = LIBMTP_Open_Raw_Device_Uncached(&rawdevices[i]);
 		if (device == NULL) {
 			MTP_LOGE("Unable to open raw device[%d]", i);
-			continue;
-		}
-
-		/* get all storages for this device */
-		ret = LIBMTP_Get_Storage(device, LIBMTP_STORAGE_SORTBY_NOTSORTED);
-		if (ret != 0) {
-			MTP_LOGE("get storage is failed!!!");
-			LIBMTP_Release_Device(device);
 			continue;
 		}
 

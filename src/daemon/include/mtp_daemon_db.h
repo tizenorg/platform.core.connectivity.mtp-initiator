@@ -30,5 +30,8 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 	MTPObjectInfo* object_info, mtp_context *mtp_ctx);
 MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 	int object_handle, mtp_context *mtp_ctx); //
+mtp_error_e mtp_daemon_db_begin(mtp_context *mtp_ctx);
+mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx);
+
 
 #endif

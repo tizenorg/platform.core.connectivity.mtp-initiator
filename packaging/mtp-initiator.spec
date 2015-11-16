@@ -1,6 +1,6 @@
 Name:       mtp-initiator
 Summary:    mtp(media transfer protocol) initiator
-Version:    1.2.1
+Version:    1.2.6
 Release:    1
 Group:      Network & Connectivity/Other
 License:    Apache-2.0
@@ -8,8 +8,8 @@ Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
 
 # This package would be built only TV
-%if "%{?tizen_profile_name}" != "tv"
-ExcludeArch: %{arm} %ix86 x86_64
+%if "%{?profile}" != "tv"
+ExcludeArch: %arm aarch64 %ix86 x86_64
 %endif
 
 BuildRequires:  cmake
@@ -32,6 +32,7 @@ A mtp-initiator
 cp %{SOURCE1} .
 
 %build
+CFLAGS+=" -DTIZEN_EXT"
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version} %{?ARM_DEF}
 

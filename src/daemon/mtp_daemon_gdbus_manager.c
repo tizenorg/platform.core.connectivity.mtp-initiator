@@ -200,7 +200,7 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	g_assert(param->invocation != NULL);
 	g_assert(param->mtp_ctx != NULL);
 
-	MTP_LOGI("%s", __func__);
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
 
@@ -209,9 +209,9 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	format = param->param3;
 	parent_object_handle = param->param4;
 
-	MTP_LOGE("storage id : %d", param->param2);
-	MTP_LOGE("format : %d", param->param3);
-	MTP_LOGE("parent : %d", param->param4);
+	MTP_LOGI("storage id : %d", param->param2);
+	MTP_LOGI("format : %d", param->param3);
+	MTP_LOGI("parent : %d", param->param4);
 
 	ret = LIBMTP_Get_Object_Handles(device, storage_id, format, parent_object_handle,
 		&object_list, &temp);
@@ -219,31 +219,41 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	if (ret < 0)
 		MTP_LOGE("LIBMTP_Get_Object_Handles is failed : %d", ret);
 
-	MTP_LOGE("Total Object number : %d", temp);
+	/*MTP_LOGI("Total Object number : %d", temp);*/
 
 	/* loop over storages */
 	g_variant_builder_init(&b, G_VARIANT_TYPE("aa{sv}"));
 
+	mtp_daemon_db_begin(param->mtp_ctx);
+
 	for (i = 0; i < temp; i++) {
 		MTPObjectInfo *object_info = NULL;
+		object_info = LIBMTP_Get_Object_Info(device, object_list[i]);
 
-		if (mtp_daemon_db_is_exist((int)device, object_list[i], param->mtp_ctx) == false) {
-			MTP_LOGE("Objectinfo is not stored. %d, %d", device, object_list[i]);
+		if (object_info != NULL)
+			mtp_daemon_db_insert(device, storage_id, object_list[i], object_info, param->mtp_ctx);
+
+		/*if (mtp_daemon_db_is_exist((int)device, object_list[i], param->mtp_ctx) == false) {
+			MTP_LOGI("Objectinfo is not stored. %d, %d", device, object_list[i]);
 			object_info = LIBMTP_Get_Object_Info(device, object_list[i]);
 
 			if (object_info != NULL)
 				mtp_daemon_db_insert(device, storage_id, object_list[i], object_info, param->mtp_ctx);
 		} else {
-			MTP_LOGE("Objectinfo is stored. ");
+			MTP_LOGI("Objectinfo is stored. ");
 			object_info = mtp_daemon_db_get_object_info(device, object_list[i], param->mtp_ctx);
-		}
+		}*/
 
 		if (object_info != NULL) {
-			MTP_LOGE("object id : %d, format : %d, filename : %s", object_list[i],
-							object_info->ObjectFormat, object_info->Filename);
+			/*MTP_LOGI("object id : %d, format : %d, filename : %s", object_list[i],
+							object_info->ObjectFormat, object_info->Filename);*/
 
-			if (format == LIBMTP_FILETYPE_ALL || format == object_info->ObjectFormat ||
-				(format == LIBMTP_FILETYPE_ALL_IMAGE && LIBMTP_FILETYPE_IS_IMAGE(object_info->ObjectFormat))) {
+			if ((format == LIBMTP_FILETYPE_ALL &&
+					(object_info->ObjectFormat == LIBMTP_FILETYPE_FOLDER ||
+					LIBMTP_FILETYPE_IS_IMAGE(object_info->ObjectFormat))) ||
+				(format == LIBMTP_FILETYPE_ALL_IMAGE &&
+					LIBMTP_FILETYPE_IS_IMAGE(object_info->ObjectFormat)) ||
+				(format == object_info->ObjectFormat)) {
 				g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
 
 				g_variant_builder_add(&b, "{sv}", "object_handle",
@@ -257,9 +267,11 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 		g_free(object_info);
 	}
 
+	mtp_daemon_db_commit(param->mtp_ctx);
+
 	gv = g_variant_builder_end(&b);
 
-	MTP_LOGE("Real object_num : %d", object_num);
+	/*MTP_LOGE("Real object_num : %d", object_num);*/
 
 	mtp_gdbuslib_manager_complete_get_object_handles(param->object,
 		param->invocation, object_num, gv, result);
@@ -290,7 +302,7 @@ static void __manager_get_object_thread_func(gpointer user_data)
 	g_assert(param->invocation != NULL);
 	g_assert(param->mtp_ctx != NULL);
 
-	MTP_LOGI("%s", __func__);
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
 	device = (LIBMTP_mtpdevice_t *)(param->param1);
@@ -301,12 +313,15 @@ static void __manager_get_object_thread_func(gpointer user_data)
 	fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 	if (fd < 0) {
+		MTP_LOGE("%s file open fail - fd : %d, dest_path : %s", __func__, fd, dest_path);
 		result = MTP_ERROR_GENERAL;
 	} else {
 		ret = LIBMTP_Get_File_To_File_Descriptor(device, object_handle, fd, NULL, NULL);
 
-		if (ret != 0)
+		if (ret != 0) {
+			MTP_LOGE("get descriptor fail - ret : %d", ret);
 			result = MTP_ERROR_PLUGIN;
+		}
 
 		close(fd);
 	}
@@ -342,19 +357,20 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 	g_assert(param->invocation != NULL);
 	g_assert(param->mtp_ctx != NULL);
 
-	MTP_LOGI("%s", __func__);
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
 	device = (LIBMTP_mtpdevice_t *)(param->param1);
 	object_handle = param->param2;
 	dest_path = param->char_param1;
 
-	MTP_LOGE("dest_path : %s", dest_path);
+	/*MTP_LOGI("dest_path : %s", dest_path);*/
 
 	/* file open */
 	fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 	if (fd < 0) {
+		MTP_LOGE("%s file open fail - fd : %d, dest_path : %s", __func__, fd, dest_path);
 		result = MTP_ERROR_GENERAL;
 	} else {
 		ret = LIBMTP_Get_Thumbnail(device, object_handle, &thumb_data, &thumb_size);
@@ -364,6 +380,7 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 			if (ret == 0)
 				result = MTP_ERROR_ALLOC_FAIL;
 		} else {
+			MTP_LOGE("get thumbnail fail - ret : %d", ret);
 			result = MTP_ERROR_PLUGIN;
 		}
 
@@ -572,8 +589,8 @@ gboolean manager_get_object_handles(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
-		g_dbus_method_invocation_get_sender(invocation));
+	/*MTP_LOGI(">>> REQUEST from [%s]",
+		g_dbus_method_invocation_get_sender(invocation));*/
 
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
@@ -626,8 +643,8 @@ gboolean manager_get_object(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
-		g_dbus_method_invocation_get_sender(invocation));
+	/*MTP_LOGI(">>> REQUEST from [%s]",
+		g_dbus_method_invocation_get_sender(invocation));*/
 
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
@@ -678,8 +695,8 @@ gboolean manager_get_thumbnail(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
-		g_dbus_method_invocation_get_sender(invocation));
+	/*MTP_LOGI(">>> REQUEST from [%s]",
+		g_dbus_method_invocation_get_sender(invocation));*/
 
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {

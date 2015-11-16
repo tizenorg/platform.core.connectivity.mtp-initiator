@@ -168,8 +168,8 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 		object_info->ModificationDate = sqlite3_column_int(stmt, 20);
 		object_info->Keywords = g_strdup(sqlite3_column_text(stmt, 21));
 
-		MTP_LOGE("object_info->Filename : %s, %ld, object_info->ModificationDate : %ld",
-			object_info->Filename, (long)object_info->CaptureDate, (long)object_info->ModificationDate);
+		/*MTP_LOGI("object_info->Filename : %s, %ld, object_info->ModificationDate : %ld",
+			object_info->Filename, (long)object_info->CaptureDate, (long)object_info->ModificationDate);*/
 
 		sqlite3_finalize(stmt);
 		sqlite3_free(sql);
@@ -212,8 +212,8 @@ bool mtp_daemon_db_is_exist(int device_handle, int object_handle, mtp_context *m
 
 		count = sqlite3_column_int(stmt, 0);
 
-		MTP_LOGE("device : %d, object_id : %d, count is [%d]", device_handle,
-			object_handle, count);
+		/*MTP_LOGI("device : %d, object_id : %d, count is [%d]", device_handle,
+			object_handle, count);*/
 
 		sqlite3_finalize(stmt);
 		sqlite3_free(sql);
@@ -222,6 +222,42 @@ bool mtp_daemon_db_is_exist(int device_handle, int object_handle, mtp_context *m
 	}
 
 	return (count > 0) ? true : false;
+}
+
+mtp_error_e mtp_daemon_db_begin(mtp_context *mtp_ctx)
+{
+	int sql_ret;
+
+	if (mtp_ctx->db == NULL) {
+		MTP_LOGE("mtp_ctx->db is NULL");
+		return MTP_ERROR_DB;
+	}
+
+	sql_ret = sqlite3_exec(mtp_ctx->db, "BEGIN;", NULL, NULL, NULL);
+	if (sql_ret != SQLITE_OK) {
+		MTP_LOGE("sqlite3_exec BEGIN failed");
+		return MTP_ERROR_DB;
+	}
+
+	return MTP_ERROR_NONE;
+}
+
+mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx)
+{
+	int sql_ret;
+
+	if (mtp_ctx->db == NULL) {
+		MTP_LOGE("mtp_ctx->db is NULL");
+		return MTP_ERROR_DB;
+	}
+
+	sql_ret = sqlite3_exec(mtp_ctx->db, "COMMIT;", NULL, NULL, NULL);
+	if (sql_ret != SQLITE_OK) {
+		MTP_LOGE("sqlite3_exec COMMIT failed");
+		return MTP_ERROR_DB;
+	}
+
+	return MTP_ERROR_NONE;
 }
 
 /* db insert is called where get_object_handles function. */
@@ -320,19 +356,6 @@ mtp_error_e mtp_daemon_db_init(mtp_context *mtp_ctx)
 			SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 		if (sql_ret != SQLITE_OK) {
 			MTP_LOGE("sqlite3_open_v2 failed, [%d]", sql_ret);
-			return MTP_ERROR_DB;
-		}
-
-		sql_ret = sqlite3_exec(mtp_ctx->db, "PRAGMA journal_mode = PERSIST",
-			NULL, NULL, &error);
-		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_exec failed, [%d] : %s", sql_ret, error);
-			if (mtp_ctx->db != NULL) {
-					sql_ret = sqlite3_close(mtp_ctx->db);
-					if (sql_ret == SQLITE_OK)
-						mtp_ctx->db = NULL;
-			}
-			sqlite3_free(error);
 			return MTP_ERROR_DB;
 		}
 
