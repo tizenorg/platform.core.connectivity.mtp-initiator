@@ -7,10 +7,7 @@ License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
 
-# This package would be built only TV
-%if "%{?profile}" != "tv"
-ExcludeArch: %arm aarch64 %ix86 x86_64
-%endif
+ExcludeArch: %ix86 x86_64
 
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(glib-2.0)

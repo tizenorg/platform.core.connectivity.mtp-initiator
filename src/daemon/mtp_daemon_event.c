@@ -70,13 +70,17 @@ static void __print_device_list(mtp_context *mtp_ctx)
 
 static int __parsing_usb_busno(const char *devpath)
 {
-	int busno;
+	int busno = -1;
 	char *pos = NULL;
 
 	pos = strrchr(devpath, '/');
-	busno = atoi(&pos[1]);
 
-	MTP_LOGE("busno : %d, pos : %s, devpath : %s", busno, pos, devpath);
+	if (pos != NULL)
+		busno = atoi(&pos[1]);
+	else
+		MTP_LOGE("pos is NULL");
+
+	MTP_LOGI("busno : %d, pos : %s, devpath : %s", busno, pos, devpath);
 
 	return busno;
 }
@@ -110,48 +114,50 @@ static void __dbus_usb_host_event_cb(GDBusConnection* connection,
 
 	tmp = g_variant_get_child_value(parameters, 0);
 	state = g_variant_get_int32(tmp);
-	MTP_LOGE("state : %d", state);
+	MTP_LOGI("state : %d", state);
 
 	tmp = g_variant_get_child_value(parameters, 1);
 	devpath = g_variant_get_string(tmp, &size);
-	MTP_LOGE("devpath : %s", devpath);
+	MTP_LOGI("devpath : %s", devpath);
 
 	tmp = g_variant_get_child_value(parameters, 2);
 	baseclass = g_variant_get_int32(tmp);
-	MTP_LOGE("baseclass : %d", baseclass);
+	MTP_LOGI("baseclass : %d", baseclass);
 
 	tmp = g_variant_get_child_value(parameters, 3);
 	subclass = g_variant_get_int32(tmp);
-	MTP_LOGE("subclass : %d", subclass);
+	MTP_LOGI("subclass : %d", subclass);
 
 	tmp = g_variant_get_child_value(parameters, 4);
 	protocol = g_variant_get_int32(tmp);
-	MTP_LOGE("protocol : %d", protocol);
+	MTP_LOGI("protocol : %d", protocol);
 
 	tmp = g_variant_get_child_value(parameters, 5);
 	vendorid = g_variant_get_int32(tmp);
-	MTP_LOGE("vendorid : %d", vendorid);
+	MTP_LOGI("vendorid : %d", vendorid);
 
 	tmp = g_variant_get_child_value(parameters, 6);
 	productid = g_variant_get_int32(tmp);
-	MTP_LOGE("productid : %d", productid);
+	MTP_LOGI("productid : %d", productid);
 
 	tmp = g_variant_get_child_value(parameters, 7);
 	manufacturer = g_variant_get_string(tmp, &size);
-	MTP_LOGE("manufacturer : %s", manufacturer);
+	MTP_LOGI("manufacturer : %s", manufacturer);
 
 	tmp = g_variant_get_child_value(parameters, 8);
 	product = g_variant_get_string(tmp, &size);
-	MTP_LOGE("product : %s", product);
+	MTP_LOGI("product : %s", product);
 
 	tmp = g_variant_get_child_value(parameters, 9);
 	serial = g_variant_get_string(tmp, &size);
-	MTP_LOGE("serial : %s", serial);
+	MTP_LOGI("serial : %s", serial);
 
 	busno = __parsing_usb_busno(devpath);
 
-	((device_changed_cb)usr_cb)(devpath, busno, state, usr_data);
-	MTP_LOGE("user callback done");
+	if (busno >= 0)
+		((device_changed_cb)usr_cb)(devpath, busno, state, usr_data);
+
+	MTP_LOGI("user callback done");
 }
 
 static int __dbus_subscribe_usb_host_event(device_changed_cb usr_callback, void *usr_data)
