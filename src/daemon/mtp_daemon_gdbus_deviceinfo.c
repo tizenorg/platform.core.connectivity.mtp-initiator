@@ -16,6 +16,7 @@
 
 #include "mtp_daemon_gdbus_deviceinfo.h"
 #include "mtp_daemon_controller.h"
+#include "mtp_daemon_util.h"
 
 /* Device Info */
 static void __deviceinfo_get_manufacturername_thread_func(gpointer user_data)
@@ -34,7 +35,7 @@ static void __deviceinfo_get_manufacturername_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call deviceinfo_get_manufacturername_thread_func");
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 
 	/* do process */
 	name = LIBMTP_Get_Manufacturername(device);
@@ -67,7 +68,7 @@ static void __deviceinfo_get_modelname_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call deviceinfo_get_modelname_thread_func");
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 
 	/* do process */
 	name = LIBMTP_Get_Modelname(device);
@@ -98,7 +99,7 @@ static void __deviceinfo_get_serialnumber_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call deviceinfo_get_serialnumber_thread_func");
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 
 	name = LIBMTP_Get_Serialnumber(device);
 
@@ -128,7 +129,7 @@ static void __deviceinfo_get_deviceversion_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call deviceinfo_get_deviceversion_thread_func");
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 
 	name = LIBMTP_Get_Deviceversion(device);
 

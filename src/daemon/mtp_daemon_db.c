@@ -163,10 +163,10 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 		object_info->AssociationType = sqlite3_column_int(stmt, 15);
 		object_info->AssociationDesc = sqlite3_column_int(stmt, 16);
 		object_info->SequenceNumber = sqlite3_column_int(stmt, 17);
-		object_info->Filename = g_strdup(sqlite3_column_text(stmt, 18));
+		object_info->Filename = g_strdup((const char *)sqlite3_column_text(stmt, 18));
 		object_info->CaptureDate = sqlite3_column_int(stmt, 19);
 		object_info->ModificationDate = sqlite3_column_int(stmt, 20);
-		object_info->Keywords = g_strdup(sqlite3_column_text(stmt, 21));
+		object_info->Keywords = g_strdup((const char *)sqlite3_column_text(stmt, 21));
 
 		/*MTP_LOGI("object_info->Filename : %s, %ld, object_info->ModificationDate : %ld",
 			object_info->Filename, (long)object_info->CaptureDate, (long)object_info->ModificationDate);*/
@@ -349,7 +349,6 @@ mtp_error_e mtp_daemon_db_init(mtp_context *mtp_ctx)
 {
 	int ret = MTP_ERROR_NONE;
 	int sql_ret;
-	char *error = NULL;
 
 	if (mtp_ctx->db == NULL) {
 		sql_ret = sqlite3_open_v2(MTP_DB_FILE, &mtp_ctx->db,

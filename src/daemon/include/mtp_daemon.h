@@ -58,6 +58,8 @@
 #define MTP_DB_FILE "/tmp/.mtp.db"
 #define MTP_DB_TABLE "mtp_object_info"
 
+#define MTP_MAX_SLOT 6 /* 1 ~ 5 (0 is not used) */
+
 typedef void (*mtp_controller_func)(gpointer user_data);
 
 /* enum */
@@ -121,7 +123,7 @@ struct _mtp_device_info {
 };
 
 struct _mtp_device_list {
-	GList *device_info_list; /* element : mtp_device_info */
+	mtp_device_info *device_info_list[MTP_MAX_SLOT]; /* 1 ~ 5 (0 is not used) */
 	GThreadPool *threads;
 	int device_num;
 };

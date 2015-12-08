@@ -17,6 +17,7 @@
 #include "mtp_daemon_gdbus_objectinfo.h"
 #include "mtp_daemon_controller.h"
 #include "mtp_daemon_db.h"
+#include "mtp_daemon_util.h"
 
 static void __objectinfo_get_property_thread_func(gpointer user_data)
 {
@@ -35,19 +36,20 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call objectinfo_get_property_thread_func");
 
 	/* parameter unpacking */
-	device_handle = (LIBMTP_mtpdevice_t *)(param->param1);
+	device_handle = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 	object_handle = param->param2;
 	property = param->param3;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device_handle);
 
 	MTP_LOGE("Get property start - property %d", property);
 
-	if (mtp_daemon_db_is_exist(device_handle, object_handle, param->mtp_ctx) == false) {
+	if (mtp_daemon_db_is_exist(param->param1, object_handle, param->mtp_ctx) == false) {
 		object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
 
 		if (object_info != NULL)
-			mtp_daemon_db_insert(device_handle, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
+			mtp_daemon_db_insert(param->param1, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
 	} else {
-		object_info = mtp_daemon_db_get_object_info(device_handle, object_handle, param->mtp_ctx);
+		object_info = mtp_daemon_db_get_object_info(param->param1, object_handle, param->mtp_ctx);
 	}
 
 	if (object_info != NULL) {
@@ -134,19 +136,20 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 	MTP_LOGE(">>> Call objectinfo_get_property_thread_func");
 
 	/* parameter unpacking */
-	device_handle = (LIBMTP_mtpdevice_t *)(param->param1);
+	device_handle = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
 	object_handle = param->param2;
 	property = param->param3;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device_handle);
 
 	MTP_LOGE("Get property start - property %d", property);
 
-	if (mtp_daemon_db_is_exist(device_handle, object_handle, param->mtp_ctx) == false) {
+	if (mtp_daemon_db_is_exist(param->param1, object_handle, param->mtp_ctx) == false) {
 		object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
 
 		if (object_info != NULL)
-			mtp_daemon_db_insert(device_handle, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
+			mtp_daemon_db_insert(param->param1, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
 	} else {
-		object_info = mtp_daemon_db_get_object_info(device_handle, object_handle, param->mtp_ctx);
+		object_info = mtp_daemon_db_get_object_info(param->param1, object_handle, param->mtp_ctx);
 	}
 
 	if (object_info != NULL) {

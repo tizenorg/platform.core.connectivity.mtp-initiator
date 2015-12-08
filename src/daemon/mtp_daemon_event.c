@@ -17,8 +17,7 @@
 #include "mtp_daemon_event.h"
 #include "mtp_daemon_gdbus.h"
 #include "mtp_daemon_db.h"
-
-#define DEVICE_MAX 5
+#include "mtp_daemon_util.h"
 
 #define DEVICED_BUS_NAME			"org.tizen.system.deviced"
 #define DEVICED_OBJECT_PATH			"/Org/Tizen/System/DeviceD"
@@ -51,21 +50,37 @@ device_cb_data *g_usb_cb_data = NULL;
 
 static void __print_device_list(mtp_context *mtp_ctx)
 {
-	GList *l;
-	int i = 0;
-	MTP_LOGE(" ");
-	MTP_LOGE("<------print list------->");
+	int slot;
 
-	for (l = g_list_first(mtp_ctx->device_list->device_info_list); l != NULL; l = l->next) {
-		i++;
+	MTP_LOGI(" ");
+	MTP_LOGI("<------print list------->");
+
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		mtp_device_info *device_info;
-		device_info = (mtp_device_info *)l->data;
+		device_info = (mtp_device_info *)mtp_ctx->device_list->device_info_list[slot];
 
-		MTP_LOGE("%d. bus %d , %s", i, device_info->bus_location, device_info->model_name);
+		if (device_info != NULL)
+			MTP_LOGI("%d. bus %d, %s, %p", slot, device_info->bus_location, device_info->model_name, device_info->device);
+		else
+			MTP_LOGI("empty slot %d", slot);
 	}
 
-	MTP_LOGE("<------print list end------->");
-	MTP_LOGE(" ");
+	MTP_LOGI("<------print list end------->");
+	MTP_LOGI(" ");
+}
+
+static int __search_empty_slot(mtp_context *mtp_ctx)
+{
+	int slot;
+
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
+		if (mtp_ctx->device_list->device_info_list[slot] == NULL) {
+			MTP_LOGI("empty slot : %d", slot);
+			return slot;
+		}
+	}
+
+	return -1;
 }
 
 static int __parsing_usb_busno(const char *devpath)
@@ -219,7 +234,7 @@ ERROR:
 
 void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_state host_status, void *user_data)
 {
-	int i;
+	int slot;
 	int num_of_devices;
 	mtp_context *mtp_ctx = (mtp_context *)user_data;
 	LIBMTP_raw_device_t *raw_devices;
@@ -230,28 +245,31 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 
 	if (host_status == USB_HOST_ADDED) {
 		LIBMTP_Detect_Raw_Devices(&raw_devices, &num_of_devices);
-		for (i = 0; i < num_of_devices; i++) {
-			if (bus_no == raw_devices[i].bus_location) {
+		for (slot = 0; slot < num_of_devices; slot++) {
+			if (bus_no == raw_devices[slot].bus_location) {
 				MTP_LOGE("connected bus_no : %d", bus_no);
-				device_info = g_new0(mtp_device_info, 1);
-				device = LIBMTP_Open_Raw_Device_Uncached(&raw_devices[i]);
+				int empty_slot = 0;
 
+				device = LIBMTP_Open_Raw_Device_Uncached(&raw_devices[slot]);
 				if (device == NULL) {
-					MTP_LOGE("Unable to open raw device[%d]", i);
+					MTP_LOGE("Unable to open raw device[%d]", slot);
 					continue;
 				}
 
+				device_info = g_new0(mtp_device_info, 1);
+
 				device_info->device = device;
-				device_info->bus_location = raw_devices[i].bus_location;
+				device_info->bus_location = raw_devices[slot].bus_location;
 				device_info->model_name = LIBMTP_Get_Modelname(device);
 
-				mtp_ctx->device_list->device_info_list
-					= g_list_prepend(mtp_ctx->device_list->device_info_list, device_info);
+				empty_slot = __search_empty_slot(mtp_ctx);
+
+				mtp_ctx->device_list->device_info_list[empty_slot] = device_info;
 				mtp_ctx->device_list->device_num++;
 
 				g_thread_pool_push(mtp_ctx->device_list->threads, (gpointer)device, NULL);
 
-				mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_ADDED, device, mtp_ctx);
+				mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_ADDED, empty_slot, mtp_ctx);
 			}
 		}
 		g_free(raw_devices);
@@ -263,75 +281,80 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 
 static void* __event_thread(gpointer dev, gpointer data)
 {
-	int ret;
 	LIBMTP_mtpdevice_t *device = (LIBMTP_mtpdevice_t *)dev;
 	mtp_context *mtp_ctx = (mtp_context *)data;
 	LIBMTP_event_t device_event;
 	uint32_t param1;
-	GList *l;
+	int device_id = -1;
 
 	MTP_LOGI("Event loop is started");
 
-	mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_ADDED, device, mtp_ctx);
+	mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_ADDED,
+		mtp_daemon_util_get_device_id(device, mtp_ctx), mtp_ctx);
 
 	while (LIBMTP_Read_Event(device, &device_event, &param1) == 0) {
 		MTP_LOGI("device %d device_event is occured %d", device, device_event);
 
+		device_id = mtp_daemon_util_get_device_id(device, mtp_ctx);
+
 		if (device_event == LIBMTP_EVENT_STORE_ADDED) {
 			LIBMTP_Get_Storage(device, LIBMTP_STORAGE_SORTBY_NOTSORTED);
 		} else if (device_event == LIBMTP_EVENT_STORE_REMOVED) {
-			mtp_daemon_db_delete((int)device, param1, 0, mtp_ctx);
+			if (device_id >= 0)
+				mtp_daemon_db_delete(device_id, param1, 0, mtp_ctx);
 			LIBMTP_Get_Storage(device, LIBMTP_STORAGE_SORTBY_NOTSORTED);
 		} else if (device_event == LIBMTP_EVENT_OBJECT_REMOVED) {
-			mtp_daemon_db_delete((int)device, 0, param1, mtp_ctx);
+			if (device_id >= 0)
+				mtp_daemon_db_delete(device_id, 0, param1, mtp_ctx);
 		} else if (device_event == LIBMTP_EVENT_OBJECT_ADDED) {
 			MTPObjectInfo *object_info;
 			object_info = LIBMTP_Get_Object_Info(device, param1);
 
 			/* scan db and if exist, then update db */
-			if (object_info != NULL) {
-				if (mtp_daemon_db_is_exist((int)device, param1, mtp_ctx) == true) {
+			if (object_info != NULL && device_id >= 0) {
+				if (mtp_daemon_db_is_exist(device_id, param1, mtp_ctx) == true) {
 					MTP_LOGI("DB Update");
-					mtp_daemon_db_update((int)device, param1, object_info, mtp_ctx);
+					mtp_daemon_db_update(device_id, param1, object_info, mtp_ctx);
 				} else {
 					MTP_LOGI("DB Insert");
-					mtp_daemon_db_insert((int)device, object_info->StorageID, param1, object_info, mtp_ctx);
+					mtp_daemon_db_insert(device_id, object_info->StorageID, param1, object_info, mtp_ctx);
 				}
 			}
 		}
 
-		mtp_daemon_gdbus_emit_event(device_event, param1, mtp_ctx);
+		mtp_daemon_gdbus_emit_event(device_event, (int)param1, mtp_ctx);
 	}
 
-	MTP_LOGI("device is closing down!!");
+	MTP_LOGI("device is closing down!! device : %p", device);
 
-	mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_REMOVED, device, mtp_ctx);
+	mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_REMOVED,
+		mtp_daemon_util_get_device_id(device, mtp_ctx), mtp_ctx);
 
 	/* remove the device into device list */
-	for (l = g_list_first(mtp_ctx->device_list->device_info_list); l != NULL; l = l->next) {
+	device_id = mtp_daemon_util_get_device_id(device, mtp_ctx);
+
+	if (device_id >= 0) {
 		mtp_device_info *device_info;
-		device_info = l->data;
 
-		if (device_info->device == device) {
-			MTP_LOGI("remove device from the list!!");
+		MTP_LOGI("remove device from the list!!");
 
-			mtp_ctx->device_list->device_info_list
-				= g_list_remove(mtp_ctx->device_list->device_info_list, device_info);
-			mtp_ctx->device_list->device_num--;
+		device_info = mtp_ctx->device_list->device_info_list[device_id];
+		mtp_ctx->device_list->device_num--;
 
-			LIBMTP_Release_Device(device_info->device);
-			mtp_daemon_db_delete((int)device, 0, 0, mtp_ctx);
+		LIBMTP_Release_Device(device_info->device);
+		mtp_daemon_db_delete(device_id, 0, 0, mtp_ctx);
 
-			g_free(device_info->model_name);
-			g_free(device_info);
-		}
+		g_free(device_info->model_name);
+		g_free(device_info);
+
+		mtp_ctx->device_list->device_info_list[device_id] = NULL;
 	}
 
 	/* TODO : deactivate signal to clients using g_idle_add */
 	__print_device_list(mtp_ctx);
 
 	if (mtp_ctx->device_list->device_num == 0) {
-		mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DAEMON_TERMINATED, device, mtp_ctx);
+		mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DAEMON_TERMINATED, 0, mtp_ctx);
 		g_main_loop_quit(mtp_ctx->main_loop);
 	}
 
@@ -342,7 +365,8 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 {
 	mtp_error_e ret = MTP_ERROR_NONE;
 	LIBMTP_raw_device_t *rawdevices;
-	int i, numrawdevices = 0;
+	int device_index;
+	int numrawdevices = 0;
 	char *tmp_name = "Unknown Device";
 
 	RETV_IF(mtp_ctx == NULL, MTP_ERROR_INVALID_PARAMETER);
@@ -357,20 +381,21 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		return MTP_ERROR_NO_DEVICE;
 	}
 
-	for (i = 0; i < numrawdevices; i++) {
+	for (device_index = 0; device_index < numrawdevices; device_index++) {
 		LIBMTP_mtpdevice_t *device;
 		mtp_device_info *device_info;
+		int empty_slot;
 
-		device_info = g_new0(mtp_device_info, 1);
-
-		device = LIBMTP_Open_Raw_Device_Uncached(&rawdevices[i]);
+		device = LIBMTP_Open_Raw_Device_Uncached(&rawdevices[device_index]);
 		if (device == NULL) {
-			MTP_LOGE("Unable to open raw device[%d]", i);
+			MTP_LOGE("Unable to open raw device[%d]", device_index);
 			continue;
 		}
 
+		device_info = g_new0(mtp_device_info, 1);
+
 		device_info->device = device;
-		device_info->bus_location = rawdevices[i].bus_location;
+		device_info->bus_location = rawdevices[device_index].bus_location;
 		device_info->model_name = LIBMTP_Get_Modelname(device);
 
 		if (device_info->model_name == NULL) {
@@ -379,9 +404,15 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		}
 		MTP_LOGI("Device: %s, Bus: %d", device_info->model_name, device_info->bus_location);
 
-		mtp_ctx->device_list->device_info_list
-			= g_list_prepend(mtp_ctx->device_list->device_info_list, device_info);
+		empty_slot = __search_empty_slot(mtp_ctx);
+		MTP_LOGI("empty slot : %d", empty_slot);
+
+		mtp_ctx->device_list->device_info_list[empty_slot] = device_info;
 		mtp_ctx->device_list->device_num++;
+
+		MTP_LOGI("mtp_ctx Device: %s, mtp_ctx Bus: %d",
+			mtp_ctx->device_list->device_info_list[empty_slot]->model_name,
+			mtp_ctx->device_list->device_info_list[empty_slot]->bus_location);
 	}
 	g_free(rawdevices);
 
@@ -416,10 +447,13 @@ int usb_host_unset_event_cb(void)
 
 mtp_error_e mtp_daemon_event_init(mtp_context *mtp_ctx)
 {
-	GList *l;
+	int slot;
 	mtp_error_e ret = MTP_ERROR_NONE;
 
 	RETV_IF(mtp_ctx == NULL, MTP_ERROR_INVALID_PARAMETER);
+
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++)
+		mtp_ctx->device_list->device_info_list[slot] = NULL;
 
 	/* mtp device list init */
 	__device_list_init(mtp_ctx);
@@ -429,15 +463,19 @@ mtp_error_e mtp_daemon_event_init(mtp_context *mtp_ctx)
 
 	/* create thread pool */
 	mtp_ctx->device_list->threads
-		= g_thread_pool_new((GFunc) __event_thread, mtp_ctx, DEVICE_MAX, TRUE, NULL);
+		= g_thread_pool_new((GFunc) __event_thread, mtp_ctx, MTP_MAX_SLOT-1, TRUE, NULL);
 
 	/* create thread each mtp device */
-	for (l = g_list_first(mtp_ctx->device_list->device_info_list); l != NULL; l = l->next) {
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		mtp_device_info *device_info;
-		device_info = l->data;
+		device_info = (mtp_device_info *)mtp_ctx->device_list->device_info_list[slot];
 
-		g_thread_pool_push(mtp_ctx->device_list->threads,
-			(gpointer) device_info->device, NULL);
+		if (device_info != NULL) {
+			MTP_LOGI("%d. bus %d, %p", slot, device_info->bus_location, device_info->device);
+
+			g_thread_pool_push(mtp_ctx->device_list->threads,
+				(gpointer) device_info->device, NULL);
+		}
 	}
 
 	MTP_LOGE("now, number of devices and thread is %d", mtp_ctx->device_list->device_num);

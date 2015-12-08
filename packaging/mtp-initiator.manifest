@@ -4,6 +4,7 @@
 		<request>
 			<smack request="device::app_logging" type="rw"/>
 			<smack request="device::sys_logging" type="w"/>
+			<smack request="system::media" type="wx"/>
 			<smack request="_" type="rw"/>
 		</request>
 	</define>

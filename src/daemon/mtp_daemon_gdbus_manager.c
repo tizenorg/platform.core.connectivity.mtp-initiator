@@ -17,6 +17,7 @@
 #include "mtp_daemon_gdbus_manager.h"
 #include "mtp_daemon_controller.h"
 #include "mtp_daemon_db.h"
+#include "mtp_daemon_util.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -32,7 +33,7 @@ static void __manager_get_device_list_thread_func(gpointer user_data)
 
 	GVariant *gv = NULL;
 	GVariantBuilder b;
-	GList *l = NULL;
+	int slot;
 
 	/* check precondition */
 	g_assert(param != NULL);
@@ -51,19 +52,20 @@ static void __manager_get_device_list_thread_func(gpointer user_data)
 	count = param->mtp_ctx->device_list->device_num;
 	MTP_LOGE("devices_num : %d", count);
 
-	l = param->mtp_ctx->device_list->device_info_list;
-	for (l = g_list_first(l); l != NULL; l = l->next) {
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		mtp_device_info *device_info;
-		device_info = l->data;
+		device_info = param->mtp_ctx->device_list->device_info_list[slot];
 
-		g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
+		if (device_info != NULL) {
+			g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
 
-		g_variant_builder_add(&b, "{sv}", "model_name",
-			g_variant_new_string(device_info->model_name));
-		g_variant_builder_add(&b, "{sv}", "bus_location",
-			g_variant_new_int32(device_info->bus_location));
+			g_variant_builder_add(&b, "{sv}", "model_name",
+				g_variant_new_string(device_info->model_name));
+			g_variant_builder_add(&b, "{sv}", "bus_location",
+				g_variant_new_int32(device_info->bus_location));
 
-		g_variant_builder_close(&b);
+			g_variant_builder_close(&b);
+		}
 	}
 
 	gv = g_variant_builder_end(&b);
@@ -85,7 +87,7 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 
 	int busno;
 	int handle = -1;
-	GList *l = NULL;
+	int slot;
 
 	/* check precondition */
 	g_assert(param != NULL);
@@ -99,14 +101,13 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 	object = (mtpgdbuslibManager *)(param->object);
 
 	/* do process */
-	l = param->mtp_ctx->device_list->device_info_list;
-	for (l = g_list_first(l); l != NULL; l = l->next) {
+	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		mtp_device_info *device_info = NULL;
-		device_info = l->data;
+		device_info = param->mtp_ctx->device_list->device_info_list[slot];
 
 		if (busno == device_info->bus_location) {
-			handle = (int)device_info->device;
-			MTP_LOGE("handle : %d, device_h : %p", handle, device_info->device);
+			handle = slot;
+			MTP_LOGI("handle : %d, device : %p", handle, device_info->device);
 			break;
 		}
 	}
@@ -145,7 +146,8 @@ static void __manager_get_storage_ids_thread_func(gpointer user_data)
 	MTP_LOGI("%s", __func__);
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
 
 	/* loop over storages */
 	g_variant_builder_init(&b, G_VARIANT_TYPE("aa{sv}"));
@@ -184,12 +186,13 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 
 	LIBMTP_mtpdevice_t *device;
 	int ret;
-	int i;
+	int slot;
 	int storage_id;
 	int format;
 	int parent_object_handle;
 	int *object_list = NULL;
-	int temp, object_num = 0;
+	int target_object_num = 0;
+	int total_object_num = 0;
 
 	GVariant *gv = NULL;
 	GVariantBuilder b;
@@ -203,8 +206,9 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
 
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
 	storage_id = param->param2;
 	format = param->param3;
 	parent_object_handle = param->param4;
@@ -213,8 +217,8 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	MTP_LOGI("format : %d", param->param3);
 	MTP_LOGI("parent : %d", param->param4);
 
-	ret = LIBMTP_Get_Object_Handles(device, storage_id, format, parent_object_handle,
-		&object_list, &temp);
+	ret = LIBMTP_Get_Object_Handles(device, (uint32_t)storage_id, (uint32_t)format, (uint32_t)parent_object_handle,
+		(uint32_t **)&object_list, (uint32_t *)&total_object_num);
 
 	if (ret < 0)
 		MTP_LOGE("LIBMTP_Get_Object_Handles is failed : %d", ret);
@@ -226,12 +230,12 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 
 	mtp_daemon_db_begin(param->mtp_ctx);
 
-	for (i = 0; i < temp; i++) {
+	for (slot = 0; slot < total_object_num; slot++) {
 		MTPObjectInfo *object_info = NULL;
-		object_info = LIBMTP_Get_Object_Info(device, object_list[i]);
+		object_info = LIBMTP_Get_Object_Info(device, (uint32_t)object_list[slot]);
 
 		if (object_info != NULL)
-			mtp_daemon_db_insert(device, storage_id, object_list[i], object_info, param->mtp_ctx);
+			mtp_daemon_db_insert(param->param1, storage_id, object_list[slot], object_info, param->mtp_ctx);
 
 		/*if (mtp_daemon_db_is_exist((int)device, object_list[i], param->mtp_ctx) == false) {
 			MTP_LOGI("Objectinfo is not stored. %d, %d", device, object_list[i]);
@@ -257,11 +261,11 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 				g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
 
 				g_variant_builder_add(&b, "{sv}", "object_handle",
-				g_variant_new_int32(object_list[i]));
+				g_variant_new_int32(object_list[slot]));
 
 				g_variant_builder_close(&b);
 
-				object_num++;
+				target_object_num++;
 			}
 		}
 		g_free(object_info);
@@ -271,10 +275,10 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 
 	gv = g_variant_builder_end(&b);
 
-	/*MTP_LOGE("Real object_num : %d", object_num);*/
+	/*MTP_LOGE("Real object_num : %d", target_object_num);*/
 
 	mtp_gdbuslib_manager_complete_get_object_handles(param->object,
-		param->invocation, object_num, gv, result);
+		param->invocation, target_object_num, gv, result);
 
 	/* deinitializing */
 	g_free(object_list);
@@ -305,11 +309,20 @@ static void __manager_get_object_thread_func(gpointer user_data)
 	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+
 	object_handle = param->param2;
 	dest_path = param->char_param1;
 
 	/* file open */
+	if (access(dest_path, F_OK) >= 0) {
+		MTP_LOGE("file exist - dest_path : %s", dest_path);
+
+		if (unlink(dest_path) < 0)
+			MTP_LOGE("remove fail - dest_path : %s", dest_path);
+	}
+
 	fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 	if (fd < 0) {
@@ -360,13 +373,22 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+
 	object_handle = param->param2;
 	dest_path = param->char_param1;
 
 	/*MTP_LOGI("dest_path : %s", dest_path);*/
 
 	/* file open */
+	if (access(dest_path, F_OK) >= 0) {
+		MTP_LOGE("file exist - dest_path : %s", dest_path);
+
+		if (unlink(dest_path) < 0)
+			MTP_LOGE("remove fail - dest_path : %s", dest_path);
+	}
+
 	fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 	if (fd < 0) {
@@ -417,7 +439,9 @@ static void __manager_delete_object_thread_func(gpointer user_data)
 	MTP_LOGI("%s", __func__);
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)(param->param1);
+	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+
 	object_handle = param->param2;
 
 	ret = LIBMTP_Delete_Object(device, object_handle);

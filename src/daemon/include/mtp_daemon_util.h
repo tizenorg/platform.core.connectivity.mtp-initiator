@@ -21,6 +21,7 @@
 
 LIBMTP_devicestorage_t *mtp_daemon_util_get_storage_handle(
 	LIBMTP_mtpdevice_t *device_handle, int storage_id, mtp_context *mtp_ctx);
+int mtp_daemon_util_get_device_id(LIBMTP_mtpdevice_t *device, mtp_context *mtp_ctx);
 
 #endif
 
