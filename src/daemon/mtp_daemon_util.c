@@ -23,7 +23,7 @@ LIBMTP_devicestorage_t *mtp_daemon_util_get_storage_handle(
 	int slot;
 	int device_num = mtp_ctx->device_list->device_num;
 
-	MTP_LOGI("storage handle device_num : %d", device_num);
+	MTP_LOGI("device_num: %d", device_num);
 
 	/* search device */
 	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
@@ -45,17 +45,18 @@ int mtp_daemon_util_get_device_id(LIBMTP_mtpdevice_t *device, mtp_context *mtp_c
 {
 	int slot;
 
-	MTP_LOGI("device : %p, mtp_ctx->device_list : %p", device, mtp_ctx->device_list);
+	MTP_LOGI("device: %p, device_num: %d", device, mtp_ctx->device_list->device_num);
 
 	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		mtp_device_info *device_info;
 		device_info = mtp_ctx->device_list->device_info_list[slot];
 
 		if (device_info != NULL && device_info->device == device) {
-			MTP_LOGI("get device id - slot : %d", slot);
+			MTP_LOGI("device id: %d", slot);
 			return slot;
 		}
 	}
+
 	return -1;
 }
 

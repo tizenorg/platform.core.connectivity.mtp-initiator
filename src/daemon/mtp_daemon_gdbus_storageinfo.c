@@ -22,29 +22,41 @@ static void __storageinfo_get_description_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
+	int device_id;
 	int storage_id;
 	LIBMTP_mtpdevice_t *device;
 	LIBMTP_devicestorage_t *storage;
+	mtp_device_info *device_info;
 	char *name = NULL;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call storageinfo_get_description_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
-	storage_id = param->param2;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	storage = mtp_daemon_util_get_storage_handle(device,
-		storage_id, param->mtp_ctx);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	if (storage)
-		name = storage->StorageDescription;
+		storage_id = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
 
-	MTP_LOGI("StorageDescription : %s, storage handle: %p", name, storage);
+		storage = mtp_daemon_util_get_storage_handle(device,
+			storage_id, param->mtp_ctx);
+
+		if (storage)
+			name = storage->StorageDescription;
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		name = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("StorageDescription: %s, storage handle: %p", name, storage);
 
 	mtp_gdbuslib_storageinfo_complete_get_description(param->object,
 		param->invocation, name, result);
@@ -58,29 +70,40 @@ static void __storageinfo_get_freespace_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
+	int device_id;
 	int storage_id;
 	LIBMTP_mtpdevice_t *device;
 	LIBMTP_devicestorage_t *storage;
+	mtp_device_info *device_info;
 	guint64 value = 0;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call storageinfo_get_freespace_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
-	storage_id = param->param2;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	storage = mtp_daemon_util_get_storage_handle(device,
-		storage_id, param->mtp_ctx);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	if (storage)
-		value = storage->FreeSpaceInBytes;
+		storage_id = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
 
-	MTP_LOGI("FreeSpaceInBytes : %llu, storage handle: %p", value, storage);
+		storage = mtp_daemon_util_get_storage_handle(device,
+			storage_id, param->mtp_ctx);
+
+		if (storage)
+			value = storage->FreeSpaceInBytes;
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("FreeSpaceInBytes: %llu, storage handle: %p", value, storage);
 
 	mtp_gdbuslib_storageinfo_complete_get_free_space(param->object,
 		param->invocation, value, result);
@@ -94,29 +117,40 @@ static void __storageinfo_get_maxcapacity_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
+	int device_id;
 	int storage_id;
 	LIBMTP_mtpdevice_t *device;
 	LIBMTP_devicestorage_t *storage;
+	mtp_device_info *device_info;
 	guint64 value = 0;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call storageinfo_get_maxcapacity_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
-	storage_id = param->param2;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	storage = mtp_daemon_util_get_storage_handle(device,
-		storage_id, param->mtp_ctx);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	if (storage)
-		value = storage->MaxCapacity;
+		storage_id = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
 
-	MTP_LOGI("MaxCapacity : %llu, storage handle: %p", value, storage);
+		storage = mtp_daemon_util_get_storage_handle(device,
+			storage_id, param->mtp_ctx);
+
+		if (storage)
+			value = storage->MaxCapacity;
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("MaxCapacity: %llu, storage handle: %p", value, storage);
 
 	mtp_gdbuslib_storageinfo_complete_get_max_capacity(param->object,
 		param->invocation, value, result);
@@ -130,29 +164,40 @@ static void __storageinfo_get_storagetype_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
+	int device_id;
 	int storage_id;
 	LIBMTP_mtpdevice_t *device;
 	LIBMTP_devicestorage_t *storage;
+	mtp_device_info *device_info;
 	int value = 0;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call storageinfo_get_storagetype_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
-	storage_id = param->param2;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	storage = mtp_daemon_util_get_storage_handle(device,
-		storage_id, param->mtp_ctx);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	if (storage)
-		value = storage->StorageType;
+		storage_id = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
 
-	MTP_LOGI("StorageType : %d, storage handle: %p", value, storage);
+		storage = mtp_daemon_util_get_storage_handle(device,
+			storage_id, param->mtp_ctx);
+
+		if (storage)
+			value = storage->StorageType;
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("StorageType: %d, storage handle: %p", value, storage);
 
 	mtp_gdbuslib_storageinfo_complete_get_storage_type(param->object,
 		param->invocation, value, result);
@@ -166,29 +211,41 @@ static void __storageinfo_get_volumeidentifier_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
+	int device_id;
 	int storage_id;
 	LIBMTP_mtpdevice_t *device;
 	LIBMTP_devicestorage_t *storage;
+	mtp_device_info *device_info;
 	char *name = NULL;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call storageinfo_get_volumeidentifier_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
-	storage_id = param->param2;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device);
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	storage = mtp_daemon_util_get_storage_handle(device,
-		storage_id, param->mtp_ctx);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	if (storage)
-		name = storage->VolumeIdentifier;
+		storage_id = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
 
-	MTP_LOGI("VolumeIdentifier : %s, storage handle: %p", name, storage);
+		storage = mtp_daemon_util_get_storage_handle(device,
+			storage_id, param->mtp_ctx);
+
+		if (storage)
+			name = storage->VolumeIdentifier;
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		name = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("VolumeIdentifier: %s, storage handle: %p", name, storage);
 
 	mtp_gdbuslib_storageinfo_complete_get_volume_identifier(param->object,
 		param->invocation, name, result);
@@ -208,7 +265,7 @@ gboolean storageinfo_get_description(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -258,7 +315,7 @@ gboolean storageinfo_get_freespace(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -308,7 +365,7 @@ gboolean storageinfo_get_maxcapacity(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -358,7 +415,7 @@ gboolean storageinfo_get_storagetype(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -408,7 +465,7 @@ gboolean storageinfo_get_volumeidentifier(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);

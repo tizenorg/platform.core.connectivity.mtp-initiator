@@ -75,7 +75,7 @@ static int __search_empty_slot(mtp_context *mtp_ctx)
 
 	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
 		if (mtp_ctx->device_list->device_info_list[slot] == NULL) {
-			MTP_LOGI("empty slot : %d", slot);
+			MTP_LOGI("empty slot: %d", slot);
 			return slot;
 		}
 	}
@@ -95,7 +95,7 @@ static int __parsing_usb_busno(const char *devpath)
 	else
 		MTP_LOGE("pos is NULL");
 
-	MTP_LOGI("busno : %d, pos : %s, devpath : %s", busno, pos, devpath);
+	MTP_LOGI("busno: %d, pos: %s, devpath: %s", busno, pos, devpath);
 
 	return busno;
 }
@@ -129,43 +129,43 @@ static void __dbus_usb_host_event_cb(GDBusConnection* connection,
 
 	tmp = g_variant_get_child_value(parameters, 0);
 	state = g_variant_get_int32(tmp);
-	MTP_LOGI("state : %d", state);
+	MTP_LOGI("state: %d", state);
 
 	tmp = g_variant_get_child_value(parameters, 1);
 	devpath = g_variant_get_string(tmp, &size);
-	MTP_LOGI("devpath : %s", devpath);
+	MTP_LOGI("devpath: %s", devpath);
 
 	tmp = g_variant_get_child_value(parameters, 2);
 	baseclass = g_variant_get_int32(tmp);
-	MTP_LOGI("baseclass : %d", baseclass);
+	MTP_LOGI("baseclass: %d", baseclass);
 
 	tmp = g_variant_get_child_value(parameters, 3);
 	subclass = g_variant_get_int32(tmp);
-	MTP_LOGI("subclass : %d", subclass);
+	MTP_LOGI("subclass: %d", subclass);
 
 	tmp = g_variant_get_child_value(parameters, 4);
 	protocol = g_variant_get_int32(tmp);
-	MTP_LOGI("protocol : %d", protocol);
+	MTP_LOGI("protocol: %d", protocol);
 
 	tmp = g_variant_get_child_value(parameters, 5);
 	vendorid = g_variant_get_int32(tmp);
-	MTP_LOGI("vendorid : %d", vendorid);
+	MTP_LOGI("vendorid: %d", vendorid);
 
 	tmp = g_variant_get_child_value(parameters, 6);
 	productid = g_variant_get_int32(tmp);
-	MTP_LOGI("productid : %d", productid);
+	MTP_LOGI("productid: %d", productid);
 
 	tmp = g_variant_get_child_value(parameters, 7);
 	manufacturer = g_variant_get_string(tmp, &size);
-	MTP_LOGI("manufacturer : %s", manufacturer);
+	MTP_LOGI("manufacturer: %s", manufacturer);
 
 	tmp = g_variant_get_child_value(parameters, 8);
 	product = g_variant_get_string(tmp, &size);
-	MTP_LOGI("product : %s", product);
+	MTP_LOGI("product: %s", product);
 
 	tmp = g_variant_get_child_value(parameters, 9);
 	serial = g_variant_get_string(tmp, &size);
-	MTP_LOGI("serial : %s", serial);
+	MTP_LOGI("serial: %s", serial);
 
 	busno = __parsing_usb_busno(devpath);
 
@@ -180,7 +180,7 @@ static int __dbus_subscribe_usb_host_event(device_changed_cb usr_callback, void 
 	int ret = MTP_ERROR_NONE;
 	GError *error = NULL;
 
-	MTP_LOGE("BEGIN");
+	MTP_LOGI("BEGIN");
 
 	g_usb_cb_data = malloc(sizeof(device_cb_data));
 	if (g_usb_cb_data == NULL) {
@@ -214,7 +214,7 @@ static int __dbus_subscribe_usb_host_event(device_changed_cb usr_callback, void 
 					g_usb_cb_data,
 					NULL);
 
-	MTP_LOGE("END");
+	MTP_LOGI("END");
 
 	return MTP_ERROR_NONE;
 
@@ -241,13 +241,13 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 	LIBMTP_mtpdevice_t *device;
 	mtp_device_info *device_info;
 
-	MTP_LOGE("host_status : %d, bus_no : %d, dev_path : %s", host_status, bus_no, dev_path);
+	MTP_LOGI("host_status: %d, bus_no: %d, dev_path: %s", host_status, bus_no, dev_path);
 
 	if (host_status == USB_HOST_ADDED) {
 		LIBMTP_Detect_Raw_Devices(&raw_devices, &num_of_devices);
 		for (slot = 0; slot < num_of_devices; slot++) {
 			if (bus_no == raw_devices[slot].bus_location) {
-				MTP_LOGE("connected bus_no : %d", bus_no);
+				MTP_LOGI("connected bus_no: %d", bus_no);
 				int empty_slot = 0;
 
 				device = LIBMTP_Open_Raw_Device_Uncached(&raw_devices[slot]);
@@ -275,7 +275,7 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 		g_free(raw_devices);
 		__print_device_list(mtp_ctx);
 	} else if (host_status == USB_HOST_REMOVED) {
-		MTP_LOGE("disconnected bus_no : %d", bus_no);
+		MTP_LOGI("disconnected bus_no: %d", bus_no);
 	}
 }
 
@@ -325,7 +325,7 @@ static void* __event_thread(gpointer dev, gpointer data)
 		mtp_daemon_gdbus_emit_event(device_event, (int)param1, mtp_ctx);
 	}
 
-	MTP_LOGI("device is closing down!! device : %p", device);
+	MTP_LOGI("device is closing down!! device: %p", device);
 
 	mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DEVICE_REMOVED,
 		mtp_daemon_util_get_device_id(device, mtp_ctx), mtp_ctx);
@@ -373,7 +373,7 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 
 	LIBMTP_Init();
 	LIBMTP_Detect_Raw_Devices(&rawdevices, &numrawdevices);
-	MTP_LOGE("detected device num %d", numrawdevices);
+	MTP_LOGI("detected device num %d", numrawdevices);
 
 	if (numrawdevices == 0) {
 		MTP_LOGE("MTP Host have not any mtp device");
@@ -405,14 +405,13 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		MTP_LOGI("Device: %s, Bus: %d", device_info->model_name, device_info->bus_location);
 
 		empty_slot = __search_empty_slot(mtp_ctx);
-		MTP_LOGI("empty slot : %d", empty_slot);
 
 		mtp_ctx->device_list->device_info_list[empty_slot] = device_info;
 		mtp_ctx->device_list->device_num++;
 
-		MTP_LOGI("mtp_ctx Device: %s, mtp_ctx Bus: %d",
+		/*MTP_LOGI("mtp_ctx Device: %s, mtp_ctx Bus: %d",
 			mtp_ctx->device_list->device_info_list[empty_slot]->model_name,
-			mtp_ctx->device_list->device_info_list[empty_slot]->bus_location);
+			mtp_ctx->device_list->device_info_list[empty_slot]->bus_location);*/
 	}
 	g_free(rawdevices);
 
@@ -422,8 +421,6 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 int usb_host_set_event_cb(device_changed_cb usr_callback, void *usr_data)
 {
 	int ret = MTP_ERROR_NONE;
-
-	MTP_LOGE();
 
 	ret = __dbus_subscribe_usb_host_event(usr_callback, usr_data);
 
@@ -478,7 +475,7 @@ mtp_error_e mtp_daemon_event_init(mtp_context *mtp_ctx)
 		}
 	}
 
-	MTP_LOGE("now, number of devices and thread is %d", mtp_ctx->device_list->device_num);
+	MTP_LOGI("number of Devices and Thread is %d", mtp_ctx->device_list->device_num);
 
 	if (mtp_ctx->device_list->device_num == 0)
 		return MTP_ERROR_NO_DEVICE;

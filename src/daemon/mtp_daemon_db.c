@@ -54,7 +54,7 @@ mtp_error_e mtp_daemon_db_delete(int device_handle, int storage_id,
 	if (sql != NULL) {
 		sql_ret = sqlite3_exec(mtp_ctx->db, sql, NULL, NULL, &error);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_exec failed, [%d] : %s", ret, error);
+			MTP_LOGE("sqlite3_exec failed, sql_ret[%d] : %s", sql_ret, error);
 			ret = MTP_ERROR_DB;
 			sqlite3_free(error);
 		}
@@ -84,7 +84,7 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 		MTP_DB_TABLE,
 		object_info->ObjectFormat,
 		object_info->ProtectionStatus,
-		object_info->ObjectCompressedSize,
+		(int)object_info->ObjectCompressedSize,
 		object_info->ThumbFormat,
 		object_info->ThumbCompressedSize,
 		object_info->ThumbPixWidth,
@@ -102,7 +102,7 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 	if (sql != NULL) {
 		sql_ret = sqlite3_exec(mtp_ctx->db, sql, NULL, NULL, &error);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_exec failed, [%d] : %s", ret, error);
+			MTP_LOGE("sqlite3_exec failed, sql_ret[%d] : %s", sql_ret, error);
 			ret = MTP_ERROR_DB;
 			sqlite3_free(error);
 		}
@@ -136,14 +136,14 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 	if (sql != NULL && object_info != NULL) {
 		sql_ret = sqlite3_prepare_v2(mtp_ctx->db, sql, strlen(sql), &stmt, NULL);
 		if (stmt == NULL) {
-			MTP_LOGE("sqlite3_prepare_v2 failed, [%d], %s", sql_ret, sqlite3_errmsg(mtp_ctx->db));
+			MTP_LOGE("sqlite3_prepare_v2 failed, sql_ret[%d], %s", sql_ret, sqlite3_errmsg(mtp_ctx->db));
 			g_free(object_info);
 			return NULL;
 		}
 
 		sql_ret = sqlite3_step(stmt);
 		if (sql_ret != SQLITE_ROW) {
-			MTP_LOGE("sqlite3_step failed, [%d]", sql_ret);
+			MTP_LOGE("sqlite3_step failed, sql_ret[%d]", sql_ret);
 			g_free(object_info);
 			return NULL;
 		}
@@ -168,7 +168,7 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 		object_info->ModificationDate = sqlite3_column_int(stmt, 20);
 		object_info->Keywords = g_strdup((const char *)sqlite3_column_text(stmt, 21));
 
-		/*MTP_LOGI("object_info->Filename : %s, %ld, object_info->ModificationDate : %ld",
+		/*MTP_LOGI("Filename: %s, CaptureDate: %ld, ModificationDate: %ld",
 			object_info->Filename, (long)object_info->CaptureDate, (long)object_info->ModificationDate);*/
 
 		sqlite3_finalize(stmt);
@@ -200,20 +200,19 @@ bool mtp_daemon_db_is_exist(int device_handle, int object_handle, mtp_context *m
 	if (sql != NULL) {
 		sql_ret = sqlite3_prepare_v2(mtp_ctx->db, sql, strlen(sql), &stmt, NULL);
 		if (stmt == NULL) {
-			MTP_LOGE("sqlite3_prepare_v2 failed, [%d], %s", sql_ret, sqlite3_errmsg(mtp_ctx->db));
+			MTP_LOGE("sqlite3_prepare_v2 failed, sql_ret[%d], %s", sql_ret, sqlite3_errmsg(mtp_ctx->db));
 			return false;
 		}
 
 		sql_ret = sqlite3_step(stmt);
 		if (sql_ret != SQLITE_ROW) {
-			MTP_LOGE("sqlite3_step failed, [%d]", sql_ret);
+			MTP_LOGE("sqlite3_step failed, sql_ret[%d]", sql_ret);
 			return false;
 		}
 
 		count = sqlite3_column_int(stmt, 0);
 
-		/*MTP_LOGI("device : %d, object_id : %d, count is [%d]", device_handle,
-			object_handle, count);*/
+		/*MTP_LOGI("device: %d, object_id: %d, count: %d", device_handle, object_handle, count);*/
 
 		sqlite3_finalize(stmt);
 		sqlite3_free(sql);
@@ -228,6 +227,8 @@ mtp_error_e mtp_daemon_db_begin(mtp_context *mtp_ctx)
 {
 	int sql_ret;
 
+	MTP_LOGI("mtp_ctx %p", mtp_ctx);
+
 	if (mtp_ctx->db == NULL) {
 		MTP_LOGE("mtp_ctx->db is NULL");
 		return MTP_ERROR_DB;
@@ -235,7 +236,7 @@ mtp_error_e mtp_daemon_db_begin(mtp_context *mtp_ctx)
 
 	sql_ret = sqlite3_exec(mtp_ctx->db, "BEGIN;", NULL, NULL, NULL);
 	if (sql_ret != SQLITE_OK) {
-		MTP_LOGE("sqlite3_exec BEGIN failed");
+		MTP_LOGE("sqlite3_exec BEGIN failed - sql_ret[%d]", sql_ret);
 		return MTP_ERROR_DB;
 	}
 
@@ -246,6 +247,8 @@ mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx)
 {
 	int sql_ret;
 
+	MTP_LOGI("mtp_ctx %p", mtp_ctx);
+
 	if (mtp_ctx->db == NULL) {
 		MTP_LOGE("mtp_ctx->db is NULL");
 		return MTP_ERROR_DB;
@@ -253,7 +256,7 @@ mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx)
 
 	sql_ret = sqlite3_exec(mtp_ctx->db, "COMMIT;", NULL, NULL, NULL);
 	if (sql_ret != SQLITE_OK) {
-		MTP_LOGE("sqlite3_exec COMMIT failed");
+		MTP_LOGE("sqlite3_exec COMMIT failed - sql_ret[%d]", sql_ret);
 		return MTP_ERROR_DB;
 	}
 
@@ -301,7 +304,7 @@ mtp_error_e mtp_daemon_db_insert(int device_handle, int storage_id,
 	if (sql != NULL) {
 		sql_ret = sqlite3_exec(mtp_ctx->db, sql, NULL, NULL, &error);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_exec failed, [%d] : %s", ret, error);
+			MTP_LOGE("sqlite3_exec failed, sql_ret[%d] : %s", sql_ret, error);
 			ret = MTP_ERROR_DB;
 			sqlite3_free(error);
 		}
@@ -332,7 +335,7 @@ static mtp_error_e __create_table(mtp_context *mtp_ctx)
 	if (sql != NULL) {
 		sql_ret = sqlite3_exec(mtp_ctx->db, sql, NULL, NULL, &error);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_exec failed, [%d] : %s", ret, error);
+			MTP_LOGE("sqlite3_exec failed, sql_ret[%d] : %s", sql_ret, error);
 			ret = MTP_ERROR_DB;
 			sqlite3_free(error);
 		}
@@ -352,9 +355,9 @@ mtp_error_e mtp_daemon_db_init(mtp_context *mtp_ctx)
 
 	if (mtp_ctx->db == NULL) {
 		sql_ret = sqlite3_open_v2(MTP_DB_FILE, &mtp_ctx->db,
-			SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+			SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_open_v2 failed, [%d]", sql_ret);
+			MTP_LOGE("sqlite3_open_v2 failed, sql_ret[%d]", sql_ret);
 			return MTP_ERROR_DB;
 		}
 
@@ -372,7 +375,7 @@ mtp_error_e mtp_daemon_db_deinit(mtp_context *mtp_ctx)
 	if (mtp_ctx->db != NULL) {
 		sql_ret = sqlite3_close(mtp_ctx->db);
 		if (sql_ret != SQLITE_OK) {
-			MTP_LOGE("sqlite3_close failed, [%d]", sql_ret);
+			MTP_LOGE("sqlite3_close failed, sql_ret[%d]", sql_ret);
 			return MTP_ERROR_DB;
 		}
 		mtp_ctx->db = NULL;

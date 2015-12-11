@@ -260,7 +260,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 {
 	mtp_context* mtp_ctx = (mtp_context*)user_data;
 
-	MTP_LOGE("path : %s", path);
+	MTP_LOGI("path: %s", path);
 
 	mtp_ctx->connection = connection;
 
@@ -288,7 +288,7 @@ static void on_name_acquired(GDBusConnection *connection,
 {
 	mtp_context* mtp_ctx = (mtp_context*)user_data;
 
-	MTP_LOGE("name : %s", name);
+	MTP_LOGI("name: %s", name);
 
 	if (mtp_daemon_event_init(mtp_ctx) != MTP_ERROR_NONE)
 		g_main_loop_quit(mtp_ctx->main_loop);
@@ -298,7 +298,7 @@ static void on_name_lost(GDBusConnection *connnection,
 			const gchar *name,
 			gpointer user_data)
 {
-	MTP_LOGE("name : %s", name);
+	MTP_LOGI("name : %s", name);
 }
 
 mtp_error_e mtp_daemon_gdbus_init(mtp_context *mtp_ctx)
@@ -312,14 +312,14 @@ mtp_error_e mtp_daemon_gdbus_init(mtp_context *mtp_ctx)
 		mtp_ctx,
 		NULL);
 
-	MTP_LOGE("mtp_ctx->bus_id : %d", mtp_ctx->bus_id);
+	MTP_LOGI("mtp_ctx->bus_id: %d", mtp_ctx->bus_id);
 
 	return MTP_ERROR_NONE;
 }
 
 mtp_error_e mtp_daemon_gdbus_emit_event(mtp_event event, int arg1, mtp_context *mtp_ctx)
 {
-	MTP_LOGE("signal emit event : %d, arg1 : %d", event, arg1);
+	MTP_LOGI("signal emit event: %d, arg1: %d", event, arg1);
 
 	mtp_gdbuslib_manager_emit_mtp_event(mtp_ctx->manager, event, arg1);
 

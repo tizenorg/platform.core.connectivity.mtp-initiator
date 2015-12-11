@@ -24,6 +24,8 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device_handle;
+	mtp_device_info *device_info;
+	int device_id;
 	int object_handle;
 	mtp_property_e property;
 	int property_value = 0;
@@ -33,80 +35,90 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call objectinfo_get_property_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device_handle = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
 	object_handle = param->param2;
 	property = param->param3;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device_handle);
 
-	MTP_LOGE("Get property start - property %d", property);
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	if (mtp_daemon_db_is_exist(param->param1, object_handle, param->mtp_ctx) == false) {
-		object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+	if (device_info != NULL) {
+		device_handle = (LIBMTP_mtpdevice_t *)device_info->device;
+		/*MTP_LOGI("device_id: %d, device: %p", device_id, device_handle);*/
 
-		if (object_info != NULL)
-			mtp_daemon_db_insert(param->param1, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
-	} else {
-		object_info = mtp_daemon_db_get_object_info(param->param1, object_handle, param->mtp_ctx);
-	}
+		MTP_LOGI("Get property start - property %d", property);
 
-	if (object_info != NULL) {
-		switch (property) {
-		case MTP_PROPERTY_ASSOCIATION_DESC:
-			property_value = object_info->AssociationDesc;
-			break;
-		case MTP_PROPERTY_ASSOCIATION_TYPE:
-			property_value = object_info->AssociationType;
-			break;
-		case MTP_PROPERTY_SIZE:
-			property_value = object_info->ObjectCompressedSize;
-			break;
-		case MTP_PROPERTY_FORMAT:
-			property_value = object_info->ObjectFormat;
-			break;
-		case MTP_PROPERTY_IMAGE_FIX_DEPTH:
-			property_value = object_info->ImageBitDepth;
-			break;
-		case MTP_PROPERTY_IMAGE_FIX_WIDTH:
-			property_value = object_info->ImagePixWidth;
-			break;
-		case MTP_PROPERTY_IMAGE_FIX_HEIGHT:
-			property_value = object_info->ImagePixHeight;
-			break;
-		case MTP_PROPERTY_PARENT_OBJECT_HANDLE:
-			property_value = object_info->ParentObject;
-			break;
-		case MTP_PROPERTY_STORAGE_ID:
-			property_value = object_info->StorageID;
-			break;
-		case MTP_PROPERTY_THUMBNAIL_SIZE:
-			property_value = object_info->ThumbCompressedSize;
-			break;
-		case MTP_PROPERTY_THUMBNAIL_FORMAT:
-			property_value = object_info->ThumbFormat;
-			break;
-		case MTP_PROPERTY_THUMBNAIL_WIDTH:
-			property_value = object_info->ThumbPixWidth;
-			break;
-		case MTP_PROPERTY_THUMBNAIL_HEIGHT:
-			property_value = object_info->ThumbPixHeight;
-			break;
-		case MTP_PROPERTY_DATA_CREATED:
-			property_value = object_info->CaptureDate;
-			break;
-		case MTP_PROPERTY_DATA_MODIFIED:
-			property_value = object_info->ModificationDate;
-			break;
-		default:
-			property_value = 0;
-			break;
+		if (mtp_daemon_db_is_exist(device_id, object_handle, param->mtp_ctx) == false) {
+			object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+
+			if (object_info != NULL)
+				mtp_daemon_db_insert(device_id, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
+		} else {
+			object_info = mtp_daemon_db_get_object_info(device_id, object_handle, param->mtp_ctx);
 		}
-		MTP_LOGE("Get property end, value is %d", property_value);
+
+		if (object_info != NULL) {
+			switch (property) {
+			case MTP_PROPERTY_ASSOCIATION_DESC:
+				property_value = object_info->AssociationDesc;
+				break;
+			case MTP_PROPERTY_ASSOCIATION_TYPE:
+				property_value = object_info->AssociationType;
+				break;
+			case MTP_PROPERTY_SIZE:
+				property_value = object_info->ObjectCompressedSize;
+				break;
+			case MTP_PROPERTY_FORMAT:
+				property_value = object_info->ObjectFormat;
+				break;
+			case MTP_PROPERTY_IMAGE_FIX_DEPTH:
+				property_value = object_info->ImageBitDepth;
+				break;
+			case MTP_PROPERTY_IMAGE_FIX_WIDTH:
+				property_value = object_info->ImagePixWidth;
+				break;
+			case MTP_PROPERTY_IMAGE_FIX_HEIGHT:
+				property_value = object_info->ImagePixHeight;
+				break;
+			case MTP_PROPERTY_PARENT_OBJECT_HANDLE:
+				property_value = object_info->ParentObject;
+				break;
+			case MTP_PROPERTY_STORAGE_ID:
+				property_value = object_info->StorageID;
+				break;
+			case MTP_PROPERTY_THUMBNAIL_SIZE:
+				property_value = object_info->ThumbCompressedSize;
+				break;
+			case MTP_PROPERTY_THUMBNAIL_FORMAT:
+				property_value = object_info->ThumbFormat;
+				break;
+			case MTP_PROPERTY_THUMBNAIL_WIDTH:
+				property_value = object_info->ThumbPixWidth;
+				break;
+			case MTP_PROPERTY_THUMBNAIL_HEIGHT:
+				property_value = object_info->ThumbPixHeight;
+				break;
+			case MTP_PROPERTY_DATA_CREATED:
+				property_value = object_info->CaptureDate;
+				break;
+			case MTP_PROPERTY_DATA_MODIFIED:
+				property_value = object_info->ModificationDate;
+				break;
+			default:
+				property_value = 0;
+				break;
+			}
+			MTP_LOGI("Get property end, value is %d", property_value);
+		} else {
+			property_value = -999;
+			MTP_LOGE("object_info is NULL!!");
+		}
 	} else {
+		MTP_LOGE("!!! no MTP device");
 		property_value = -999;
-		MTP_LOGE("object_info is NULL!!");
+		result = MTP_ERROR_NO_DEVICE;
 	}
 
 	mtp_gdbuslib_objectinfo_complete_get_property(param->object,
@@ -124,6 +136,8 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device_handle;
+	mtp_device_info *device_info;
+	int device_id;
 	int object_handle;
 	mtp_property_e property;
 	char *property_value = NULL;
@@ -133,41 +147,51 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call objectinfo_get_property_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device_handle = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
 	object_handle = param->param2;
 	property = param->param3;
-	MTP_LOGI("param->param1 %d, device %p", param->param1, device_handle);
 
-	MTP_LOGE("Get property start - property %d", property);
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	if (mtp_daemon_db_is_exist(param->param1, object_handle, param->mtp_ctx) == false) {
-		object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+	if (device_info != NULL) {
+		device_handle = (LIBMTP_mtpdevice_t *)device_info->device;
+		/*MTP_LOGI("device_id: %d, device: %p", device_id, device_handle);*/
 
-		if (object_info != NULL)
-			mtp_daemon_db_insert(param->param1, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
-	} else {
-		object_info = mtp_daemon_db_get_object_info(param->param1, object_handle, param->mtp_ctx);
-	}
+		MTP_LOGI("Get property start - property %d", property);
 
-	if (object_info != NULL) {
-		switch (property) {
-		case MTP_PROPERTY_FILENAME:
-			property_value = object_info->Filename;
-			break;
-		case MTP_PROPERTY_KEYWORD:
-			property_value = object_info->Keywords;
-			break;
-		default:
-			property_value = NULL;
-			break;
+		if (mtp_daemon_db_is_exist(device_id, object_handle, param->mtp_ctx) == false) {
+			object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+
+			if (object_info != NULL)
+				mtp_daemon_db_insert(device_id, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
+		} else {
+			object_info = mtp_daemon_db_get_object_info(device_id, object_handle, param->mtp_ctx);
 		}
-		MTP_LOGE("Get property end, value is %d", property_value);
+
+		if (object_info != NULL) {
+			switch (property) {
+			case MTP_PROPERTY_FILENAME:
+				property_value = object_info->Filename;
+				break;
+			case MTP_PROPERTY_KEYWORD:
+				property_value = object_info->Keywords;
+				break;
+			default:
+				property_value = NULL;
+				break;
+			}
+			MTP_LOGI("Get property end, value is %d", property_value);
+		} else {
+			property_value = NULL;
+			MTP_LOGE("object_info is NULL!!");
+		}
 	} else {
+		MTP_LOGE("!!! no MTP device");
 		property_value = NULL;
-		MTP_LOGE("object_info is NULL!!");
+		result = MTP_ERROR_NO_DEVICE;
 	}
 
 	mtp_gdbuslib_objectinfo_complete_get_property_string(param->object,
@@ -191,7 +215,7 @@ gboolean objectinfo_get_property(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -245,7 +269,7 @@ gboolean objectinfo_get_property_string(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);

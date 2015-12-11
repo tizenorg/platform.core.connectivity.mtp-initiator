@@ -26,21 +26,32 @@ static void __deviceinfo_get_manufacturername_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device;
 	char *name = NULL;
+	mtp_device_info *device_info;
+	int device_id;
 
 	/* check precondition */
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call deviceinfo_get_manufacturername_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	/* do process */
-	name = LIBMTP_Get_Manufacturername(device);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	MTP_LOGE("name : %s, device handle : %p", name, device);
+		/* do process */
+		name = LIBMTP_Get_Manufacturername(device);
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		name = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("name: %s, device handle: %p", name, device);
 
 	mtp_gdbuslib_deviceinfo_complete_get_manufacturername(param->object,
 		param->invocation, name, result);
@@ -59,21 +70,32 @@ static void __deviceinfo_get_modelname_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device;
 	char *name = NULL;
+	mtp_device_info *device_info;
+	int device_id;
 
 	/* check precondition */
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call deviceinfo_get_modelname_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	/* do process */
-	name = LIBMTP_Get_Modelname(device);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	MTP_LOGE("name : %s, device handle : %p", name, device);
+		/* do process */
+		name = LIBMTP_Get_Modelname(device);
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		name = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("name: %s, device handle: %p", name, device);
 
 	mtp_gdbuslib_deviceinfo_complete_get_modelname(param->object,
 		param->invocation, name, result);
@@ -90,26 +112,38 @@ static void __deviceinfo_get_serialnumber_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device;
-	char *name = NULL;
+	char *number = NULL;
+	mtp_device_info *device_info;
+	int device_id;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call deviceinfo_get_serialnumber_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	name = LIBMTP_Get_Serialnumber(device);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	MTP_LOGE("name : %s, device handle : %p", name, device);
+		/* do process */
+		number = LIBMTP_Get_Serialnumber(device);
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		number = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("name: %s, device handle: %p", number, device);
 
 	mtp_gdbuslib_deviceinfo_complete_get_serialnumber(param->object,
-		param->invocation, name, result);
+		param->invocation, number, result);
 
 	/* deinitializing */
-	g_free(name);
+	g_free(number);
 	g_object_unref(param->invocation);
 	g_object_unref(param->object);
 	g_free(param);
@@ -120,26 +154,38 @@ static void __deviceinfo_get_deviceversion_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	LIBMTP_mtpdevice_t *device;
-	char *name = NULL;
+	char *version = NULL;
+	mtp_device_info *device_info;
+	int device_id;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
 	g_assert(param->invocation != NULL);
 
-	MTP_LOGE(">>> Call deviceinfo_get_deviceversion_thread_func");
+	/*MTP_LOGI("%s", __func__);*/
 
 	/* parameter unpacking */
-	device = (LIBMTP_mtpdevice_t *)param->mtp_ctx->device_list->device_info_list[param->param1]->device;
+	device_id = param->param1;
+	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
-	name = LIBMTP_Get_Deviceversion(device);
+	if (device_info != NULL) {
+		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-	MTP_LOGE("name : %s, device handle: %p", name, device);
+		/* do process */
+		version = LIBMTP_Get_Deviceversion(device);
+	} else {
+		MTP_LOGE("!!! no MTP device");
+		version = strdup("No Device");
+		result = MTP_ERROR_NO_DEVICE;
+	}
+
+	MTP_LOGI("version: %s, device handle: %p", version, device);
 
 	mtp_gdbuslib_deviceinfo_complete_get_deviceversion(param->object,
-		param->invocation, name, result);
+		param->invocation, version, result);
 
 	/* deinitializing */
-	g_free(name);
+	g_free(version);
 	g_object_unref(param->invocation);
 	g_object_unref(param->object);
 	g_free(param);
@@ -154,7 +200,7 @@ gboolean deviceinfo_get_manufacturername(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -203,7 +249,7 @@ gboolean deviceinfo_get_modelname(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -251,7 +297,7 @@ gboolean deviceinfo_get_serialnumber(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
@@ -299,7 +345,7 @@ gboolean deviceinfo_get_deviceversion(
 	mtp_param *param = NULL;
 	gint result = MTP_ERROR_NONE;
 
-	MTP_LOGE(">>> REQUEST from [%s]",
+	MTP_LOGI(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
 	param = g_try_new0(mtp_param, 1);
