@@ -83,6 +83,25 @@ static int __search_empty_slot(mtp_context *mtp_ctx)
 	return -1;
 }
 
+static void __wait_smack_labeling(char *usb_node)
+{
+	int check_count = 0;
+
+	do {
+		char label[256] = {0,};
+		getxattr(usb_node, "security.SMACK64", label, 256);
+
+		MTP_LOGI("check_count: %d, label: %s", check_count, label);
+
+		if (label[0] == NULL)
+			continue;
+		else if (!strcmp(label, "*"))
+			break;
+
+		usleep(50*1000); /* 50ms */
+	} while (check_count++ < 50);
+}
+
 static int __parsing_usb_busno(const char *devpath)
 {
 	int busno = -1;
@@ -247,12 +266,21 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 		LIBMTP_Detect_Raw_Devices(&raw_devices, &num_of_devices);
 		for (slot = 0; slot < num_of_devices; slot++) {
 			if (bus_no == raw_devices[slot].bus_location) {
-				MTP_LOGI("connected bus_no: %d", bus_no);
 				int empty_slot = 0;
+				char usb_node[256] = {0,};
+
+				MTP_LOGI("connected bus_no: %d", bus_no);
+
+				snprintf(usb_node, sizeof(usb_node), "/dev/bus/usb/%03d/%03d",
+					raw_devices[slot].bus_location, raw_devices[slot].devnum);
+
+				MTP_LOGI("usb_node : %s", usb_node);
+
+				__wait_smack_labeling(usb_node);
 
 				device = LIBMTP_Open_Raw_Device_Uncached(&raw_devices[slot]);
 				if (device == NULL) {
-					MTP_LOGE("Unable to open raw device[%d]", slot);
+					MTP_LOGE("Unable to open raw device: %d", slot);
 					continue;
 				}
 
@@ -263,6 +291,8 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 				device_info->model_name = LIBMTP_Get_Modelname(device);
 
 				empty_slot = __search_empty_slot(mtp_ctx);
+				if (empty_slot < 0)
+					continue;
 
 				mtp_ctx->device_list->device_info_list[empty_slot] = device_info;
 				mtp_ctx->device_list->device_num++;
@@ -385,6 +415,14 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		LIBMTP_mtpdevice_t *device;
 		mtp_device_info *device_info;
 		int empty_slot;
+		char usb_node[256] = {0,};
+
+		snprintf(usb_node, sizeof(usb_node), "/dev/bus/usb/%03d/%03d",
+			rawdevices[device_index].bus_location, rawdevices[device_index].devnum);
+
+		MTP_LOGI("usb_node : %s", usb_node);
+
+		__wait_smack_labeling(usb_node);
 
 		device = LIBMTP_Open_Raw_Device_Uncached(&rawdevices[device_index]);
 		if (device == NULL) {
@@ -405,6 +443,8 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 		MTP_LOGI("Device: %s, Bus: %d", device_info->model_name, device_info->bus_location);
 
 		empty_slot = __search_empty_slot(mtp_ctx);
+		if (empty_slot < 0)
+			continue;
 
 		mtp_ctx->device_list->device_info_list[empty_slot] = device_info;
 		mtp_ctx->device_list->device_num++;

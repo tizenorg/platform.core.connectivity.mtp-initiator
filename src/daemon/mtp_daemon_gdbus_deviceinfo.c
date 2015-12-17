@@ -24,7 +24,7 @@ static void __deviceinfo_get_manufacturername_thread_func(gpointer user_data)
 	/* variable definition */
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device;
+	LIBMTP_mtpdevice_t *device = NULL;
 	char *name = NULL;
 	mtp_device_info *device_info;
 	int device_id;
@@ -68,7 +68,7 @@ static void __deviceinfo_get_modelname_thread_func(gpointer user_data)
 	/* variable definition */
 	mtp_param *param  = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device;
+	LIBMTP_mtpdevice_t *device = NULL;
 	char *name = NULL;
 	mtp_device_info *device_info;
 	int device_id;
@@ -111,7 +111,7 @@ static void __deviceinfo_get_serialnumber_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device;
+	LIBMTP_mtpdevice_t *device = NULL;
 	char *number = NULL;
 	mtp_device_info *device_info;
 	int device_id;
@@ -153,7 +153,7 @@ static void __deviceinfo_get_deviceversion_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device;
+	LIBMTP_mtpdevice_t *device = NULL;
 	char *version = NULL;
 	mtp_device_info *device_info;
 	int device_id;
