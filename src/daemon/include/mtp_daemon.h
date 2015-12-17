@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sqlite3.h>
+#include <sys/xattr.h>
 
 #include <glib.h>
 #include <gio/gio.h>

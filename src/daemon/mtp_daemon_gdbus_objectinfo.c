@@ -23,13 +23,13 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device_handle;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device_handle = NULL;
+	mtp_device_info *device_info = NULL;
 	int device_id;
 	int object_handle;
 	mtp_property_e property;
 	int property_value = 0;
-	MTPObjectInfo *object_info;
+	MTPObjectInfo *object_info = NULL;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);
@@ -135,13 +135,13 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device_handle;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device_handle = NULL;
+	mtp_device_info *device_info = NULL;
 	int device_id;
 	int object_handle;
 	mtp_property_e property;
 	char *property_value = NULL;
-	MTPObjectInfo *object_info;
+	MTPObjectInfo *object_info = NULL;
 
 	g_assert(param != NULL);
 	g_assert(param->object != NULL);

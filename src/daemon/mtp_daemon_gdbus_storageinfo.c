@@ -24,9 +24,9 @@ static void __storageinfo_get_description_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
 	int storage_id;
-	LIBMTP_mtpdevice_t *device;
-	LIBMTP_devicestorage_t *storage;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device = NULL;
+	LIBMTP_devicestorage_t *storage = NULL;
+	mtp_device_info *device_info = NULL;
 	char *name = NULL;
 
 	g_assert(param != NULL);
@@ -72,9 +72,9 @@ static void __storageinfo_get_freespace_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
 	int storage_id;
-	LIBMTP_mtpdevice_t *device;
-	LIBMTP_devicestorage_t *storage;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device = NULL;
+	LIBMTP_devicestorage_t *storage = NULL;
+	mtp_device_info *device_info = NULL;
 	guint64 value = 0;
 
 	g_assert(param != NULL);
@@ -119,9 +119,9 @@ static void __storageinfo_get_maxcapacity_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
 	int storage_id;
-	LIBMTP_mtpdevice_t *device;
-	LIBMTP_devicestorage_t *storage;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device = NULL;
+	LIBMTP_devicestorage_t *storage = NULL;
+	mtp_device_info *device_info = NULL;
 	guint64 value = 0;
 
 	g_assert(param != NULL);
@@ -166,9 +166,9 @@ static void __storageinfo_get_storagetype_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
 	int storage_id;
-	LIBMTP_mtpdevice_t *device;
-	LIBMTP_devicestorage_t *storage;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device = NULL;
+	LIBMTP_devicestorage_t *storage = NULL;
+	mtp_device_info *device_info = NULL;
 	int value = 0;
 
 	g_assert(param != NULL);
@@ -213,9 +213,9 @@ static void __storageinfo_get_volumeidentifier_thread_func(gpointer user_data)
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
 	int storage_id;
-	LIBMTP_mtpdevice_t *device;
-	LIBMTP_devicestorage_t *storage;
-	mtp_device_info *device_info;
+	LIBMTP_mtpdevice_t *device = NULL;
+	LIBMTP_devicestorage_t *storage = NULL;
+	mtp_device_info *device_info = NULL;
 	char *name = NULL;
 
 	g_assert(param != NULL);
