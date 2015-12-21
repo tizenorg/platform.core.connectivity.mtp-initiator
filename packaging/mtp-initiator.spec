@@ -41,6 +41,9 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_libdir}/udev/rules.d
 cp packaging/99-mtp.rules %{buildroot}%{_libdir}/udev/rules.d/99-mtp.rules
 
+mkdir -p %{buildroot}/etc/dbus-1/system.d/
+cp -af %{_builddir}/%{name}-%{version}/packaging/org.tizen.mtp.conf %{buildroot}/etc/dbus-1/system.d/
+
 %make_install
 
 install -D -m 0644 packaging/mtp-initiator.service %{buildroot}%{_libdir}/systemd/system/mtp-initiator.service
@@ -51,3 +54,4 @@ install -D -m 0644 packaging/mtp-initiator.service %{buildroot}%{_libdir}/system
 %{_bindir}/mtp-initiator
 %{_libdir}/systemd/system/mtp-initiator.service
 %{_libdir}/udev/rules.d/99-mtp.rules
+/etc/dbus-1/system.d/org.tizen.mtp.conf

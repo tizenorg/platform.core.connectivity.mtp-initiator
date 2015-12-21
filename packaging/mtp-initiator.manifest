@@ -1,17 +1,5 @@
 <manifest>
-	<define>
-		<domain name ="mtp-initiator"/>
-		<request>
-			<smack request="device::app_logging" type="rw"/>
-			<smack request="device::sys_logging" type="w"/>
-			<smack request="system::media" type="wx"/>
-			<smack request="_" type="rw"/>
-		</request>
-	</define>
-	<assign>
-		<filesystem path="/usr/bin/mtp-initiator" exec_label="mtp-initiator"/>
-	</assign>
 	<request>
-		<domain name ="mtp-initiator"/>
+		<domain name ="_"/>
 	</request>
 </manifest>

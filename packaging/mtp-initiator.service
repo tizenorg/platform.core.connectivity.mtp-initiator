@@ -4,7 +4,6 @@ Description=MTP initiator
 [Service]
 User=system
 Group=system
-SmackProcessLabel=mtp-initiator
 Type=simple
 ExecStart=/usr/bin/mtp-initiator
 KillMode=process
