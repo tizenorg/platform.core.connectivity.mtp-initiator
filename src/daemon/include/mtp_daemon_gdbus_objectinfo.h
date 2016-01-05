@@ -22,7 +22,7 @@
 gboolean objectinfo_get_property(
 		mtpgdbuslibObjectinfo *objectinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gint property,
 		gpointer user_data);
@@ -30,7 +30,7 @@ gboolean objectinfo_get_property(
 gboolean objectinfo_get_property_string(
 		mtpgdbuslibObjectinfo *objectinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gint property,
 		gpointer user_data);

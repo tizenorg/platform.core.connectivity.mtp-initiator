@@ -84,7 +84,7 @@ mtp_error_e mtp_daemon_controller_init(mtp_context *mtp_ctx)
 		MTP_LOGE("Can not create controller thread : %s", error->message);
 		g_error_free(error);
 
-		return MTP_ERROR_GENERAL;
+		return MTP_ERROR_CONTROLLER;
 	}
 
 	return ret;

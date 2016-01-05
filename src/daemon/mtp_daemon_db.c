@@ -16,7 +16,7 @@
 
 #include "mtp_daemon_db.h"
 
-mtp_error_e mtp_daemon_db_delete(int device_handle, int storage_id,
+mtp_error_e mtp_daemon_db_delete(int mtp_device, int mtp_storage,
 	int object_handle, mtp_context *mtp_ctx)
 {
 	int ret = MTP_ERROR_NONE;
@@ -29,25 +29,25 @@ mtp_error_e mtp_daemon_db_delete(int device_handle, int storage_id,
 		return MTP_ERROR_DB;
 	}
 
-	if (device_handle == 0) {
+	if (mtp_device == 0) {
 		MTP_LOGE("device handle is 0");
 		return MTP_ERROR_DB;
 	}
 
-	if (storage_id == 0 && object_handle == 0) {
-		sql = sqlite3_mprintf("DELETE FROM %s WHERE device_handle=%d",
+	if (mtp_storage == 0 && object_handle == 0) {
+		sql = sqlite3_mprintf("DELETE FROM %s WHERE mtp_device=%d",
 			MTP_DB_TABLE,
-			device_handle);
-	} else if (storage_id != 0 && object_handle == 0) {
-		sql = sqlite3_mprintf("DELETE FROM %s WHERE device_handle=%d and storage_id=%d",
+			mtp_device);
+	} else if (mtp_storage != 0 && object_handle == 0) {
+		sql = sqlite3_mprintf("DELETE FROM %s WHERE mtp_device=%d and mtp_storage=%d",
 			MTP_DB_TABLE,
-			device_handle,
-			storage_id);
+			mtp_device,
+			mtp_storage);
 	} else {
-		sql = sqlite3_mprintf("DELETE FROM %s WHERE device_handle=%d and object_handle=%d",
+		sql = sqlite3_mprintf("DELETE FROM %s WHERE mtp_device=%d and object_handle=%d",
 			MTP_DB_TABLE,
-			device_handle,
-			storage_id,
+			mtp_device,
+			mtp_storage,
 			object_handle);
 	}
 
@@ -67,7 +67,7 @@ mtp_error_e mtp_daemon_db_delete(int device_handle, int storage_id,
 	return ret;
 }
 
-mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
+mtp_error_e mtp_daemon_db_update(int mtp_device, int object_handle,
 	MTPObjectInfo* object_info, mtp_context *mtp_ctx)
 {
 	int ret = MTP_ERROR_NONE;
@@ -80,7 +80,7 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 		return MTP_ERROR_DB;
 	}
 
-	sql = sqlite3_mprintf("UPDATE %s SET ObjectFormat=%d, ProtectionStatus=%d, ObjectCompressedSize=%d, ThumbFormat=%d, ThumbCompressedSize=%d, ThumbPixWidth=%d, ThumbPixHeight=%d, ImagePixWidth=%d, ImagePixHeight=%d, ImageBitDepth=%d, ParentObject=%d, AssociationType=%d, AssociationDesc=%d, SequenceNumber=%d WHERE device_handle=%d and object_handle=%d",
+	sql = sqlite3_mprintf("UPDATE %s SET ObjectFormat=%d, ProtectionStatus=%d, ObjectCompressedSize=%d, ThumbFormat=%d, ThumbCompressedSize=%d, ThumbPixWidth=%d, ThumbPixHeight=%d, ImagePixWidth=%d, ImagePixHeight=%d, ImageBitDepth=%d, ParentObject=%d, AssociationType=%d, AssociationDesc=%d, SequenceNumber=%d WHERE mtp_device=%d and object_handle=%d",
 		MTP_DB_TABLE,
 		object_info->ObjectFormat,
 		object_info->ProtectionStatus,
@@ -96,7 +96,7 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 		object_info->AssociationType,
 		object_info->AssociationDesc,
 		object_info->SequenceNumber,
-		device_handle,
+		mtp_device,
 		object_handle);
 
 	if (sql != NULL) {
@@ -115,7 +115,7 @@ mtp_error_e mtp_daemon_db_update(int device_handle, int object_handle,
 	return ret;
 }
 
-MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
+MTPObjectInfo* mtp_daemon_db_get_object_info(int mtp_device,
 	int object_handle, mtp_context *mtp_ctx)
 {
 	int sql_ret;
@@ -130,8 +130,8 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 
 	object_info = (MTPObjectInfo *)malloc(sizeof(MTPObjectInfo));
 
-	sql = sqlite3_mprintf("SELECT * FROM %s WHERE device_handle=%d and object_handle=%d;",
-		MTP_DB_TABLE, device_handle, object_handle);
+	sql = sqlite3_mprintf("SELECT * FROM %s WHERE mtp_device=%d and object_handle=%d;",
+		MTP_DB_TABLE, mtp_device, object_handle);
 
 	if (sql != NULL && object_info != NULL) {
 		sql_ret = sqlite3_prepare_v2(mtp_ctx->db, sql, strlen(sql), &stmt, NULL);
@@ -182,7 +182,7 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int device_handle,
 }
 
 /* db exist check function */
-bool mtp_daemon_db_is_exist(int device_handle, int object_handle, mtp_context *mtp_ctx)
+bool mtp_daemon_db_is_exist(int mtp_device, int object_handle, mtp_context *mtp_ctx)
 {
 	int sql_ret;
 	int count = 0;
@@ -194,8 +194,8 @@ bool mtp_daemon_db_is_exist(int device_handle, int object_handle, mtp_context *m
 		return false;
 	}
 
-	sql = sqlite3_mprintf("SELECT count(*) FROM %s WHERE device_handle=%d and object_handle=%d;",
-		MTP_DB_TABLE, device_handle, object_handle);
+	sql = sqlite3_mprintf("SELECT count(*) FROM %s WHERE mtp_device=%d and object_handle=%d;",
+		MTP_DB_TABLE, mtp_device, object_handle);
 
 	if (sql != NULL) {
 		sql_ret = sqlite3_prepare_v2(mtp_ctx->db, sql, strlen(sql), &stmt, NULL);
@@ -265,7 +265,7 @@ mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx)
 
 /* db insert is called where get_object_handles function. */
 /* every ptp protocol "get object info" call, called this function. */
-mtp_error_e mtp_daemon_db_insert(int device_handle, int storage_id,
+mtp_error_e mtp_daemon_db_insert(int mtp_device, int mtp_storage,
 	int object_handle, MTPObjectInfo* object_info, mtp_context *mtp_ctx)
 {
 	int ret = MTP_ERROR_NONE;
@@ -278,10 +278,10 @@ mtp_error_e mtp_daemon_db_insert(int device_handle, int storage_id,
 		return MTP_ERROR_DB;
 	}
 
-	sql = sqlite3_mprintf("INSERT INTO %s (device_handle, storage_id, object_handle, ObjectFormat, ProtectionStatus, ObjectCompressedSize, ThumbFormat, ThumbCompressedSize, ThumbPixWidth, ThumbPixHeight, ImagePixWidth, ImagePixHeight, ImageBitDepth, ParentObject, AssociationType, AssociationDesc, SequenceNumber, Filename, CaptureDate, ModificationDate) values(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %Q, %ld, %ld);",
+	sql = sqlite3_mprintf("INSERT INTO %s (mtp_device, mtp_storage, object_handle, ObjectFormat, ProtectionStatus, ObjectCompressedSize, ThumbFormat, ThumbCompressedSize, ThumbPixWidth, ThumbPixHeight, ImagePixWidth, ImagePixHeight, ImageBitDepth, ParentObject, AssociationType, AssociationDesc, SequenceNumber, Filename, CaptureDate, ModificationDate) values(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %Q, %ld, %ld);",
 		MTP_DB_TABLE,
-		device_handle,
-		storage_id,
+		mtp_device,
+		mtp_storage,
 		object_handle,
 		(int)object_info->ObjectFormat,
 		(int)object_info->ProtectionStatus,
@@ -329,7 +329,7 @@ static mtp_error_e __create_table(mtp_context *mtp_ctx)
 		return MTP_ERROR_DB;
 	}
 
-	sql = sqlite3_mprintf("CREATE TABLE %s(id INTEGER PRIMARY KEY, device_handle INTEGER, storage_id INTEGER, object_handle INTEGER, ObjectFormat INTEGER, ProtectionStatus INTEGER, ObjectCompressedSize INTEGER, ThumbFormat INTEGER, ThumbCompressedSize INTEGER, ThumbPixWidth INTEGER, ThumbPixHeight INTEGER, ImagePixWidth INTEGER, ImagePixHeight INTEGER, ImageBitDepth INTEGER, ParentObject INTEGER, AssociationType INTEGER, AssociationDesc INTEGER, SequenceNumber INTEGER, Filename TEXT, CaptureDate INTEGER, ModificationDate INTEGER, Keywords TEXT);",
+	sql = sqlite3_mprintf("CREATE TABLE %s(id INTEGER PRIMARY KEY, mtp_device INTEGER, mtp_storage INTEGER, object_handle INTEGER, ObjectFormat INTEGER, ProtectionStatus INTEGER, ObjectCompressedSize INTEGER, ThumbFormat INTEGER, ThumbCompressedSize INTEGER, ThumbPixWidth INTEGER, ThumbPixHeight INTEGER, ImagePixWidth INTEGER, ImagePixHeight INTEGER, ImageBitDepth INTEGER, ParentObject INTEGER, AssociationType INTEGER, AssociationDesc INTEGER, SequenceNumber INTEGER, Filename TEXT, CaptureDate INTEGER, ModificationDate INTEGER, Keywords TEXT);",
 		MTP_DB_TABLE);
 
 	if (sql != NULL) {

@@ -17,7 +17,7 @@
 #include "mtp_daemon_util.h"
 
 LIBMTP_devicestorage_t *mtp_daemon_util_get_storage_handle(
-	LIBMTP_mtpdevice_t *device_handle, int storage_id, mtp_context *mtp_ctx)
+	LIBMTP_mtpdevice_t *mtp_device, int mtp_storage, mtp_context *mtp_ctx)
 {
 	LIBMTP_devicestorage_t *storage = NULL;
 	int slot;
@@ -30,9 +30,9 @@ LIBMTP_devicestorage_t *mtp_daemon_util_get_storage_handle(
 		mtp_device_info *device_info;
 		device_info = mtp_ctx->device_list->device_info_list[slot];
 
-		if (device_info != NULL && device_info->device == device_handle) {
+		if (device_info != NULL && device_info->device == mtp_device) {
 			for (storage = device_info->device->storage; storage != NULL; storage = storage->next) {
-				if (storage->id == storage_id)
+				if (storage->id == mtp_storage)
 					return storage;
 			}
 		}

@@ -46,7 +46,9 @@
 #define MTP_LOGW(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
 #define MTP_LOGE(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
 
-#define MTP_ERROR_CLASS TIZEN_ERROR_NETWORK_CLASS /* Need define mtp error class */
+#ifndef TIZEN_ERROR_MTP
+#define TIZEN_ERROR_MTP -0x03000000
+#endif
 
 #define RETV_IF(expr, val) \
 	do { \
@@ -58,6 +60,7 @@
 
 #define MTP_DB_FILE "/tmp/.mtp.db"
 #define MTP_DB_TABLE "mtp_object_info"
+#define MTP_ERROR_DB -970
 
 #define MTP_MAX_SLOT 6 /* 1 ~ 5 (0 is not used) */
 
@@ -66,17 +69,18 @@ typedef void (*mtp_controller_func)(gpointer user_data);
 /* enum */
 typedef enum {
 	MTP_ERROR_NONE = TIZEN_ERROR_NONE, /**< Successful */
-	MTP_ERROR_GENERAL = MTP_ERROR_CLASS | 0x01, /**< A general error occurred */
-	MTP_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR, /**< I/O error */
+	MTP_ERROR_IO = TIZEN_ERROR_IO_ERROR, /**< I/O error */
 	MTP_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid parameter */
-	MTP_ERROR_NO_DEVICE = MTP_ERROR_CLASS | 0x02, /**< MTP have not any device */
-	MTP_ERROR_ALLOC_FAIL = MTP_ERROR_CLASS | 0x03, /**< Memory Allocation failed */
-	MTP_ERROR_PLUGIN = MTP_ERROR_CLASS | 0x04, /**< Plugin failed */
-	MTP_ERROR_DB = MTP_ERROR_CLASS | 0x05, /**< Plugin failed */
+	MTP_ERROR_NO_DEVICE = TIZEN_ERROR_MTP | 0x01, /**< MTP have not any device */
+	MTP_ERROR_ALLOC_FAIL = TIZEN_ERROR_MTP | 0x02, /**< Memory Allocation failed */
+	MTP_ERROR_PLUGIN = TIZEN_ERROR_MTP | 0x03, /**< Plugin failed */
 	MTP_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
-	MTP_ERROR_NOT_INITIALIZED = MTP_ERROR_CLASS | 0x06, /**< MTP is not supported */
-	MTP_ERROR_NOT_ACTIVATED = MTP_ERROR_CLASS | 0x07, /**< MTP is not activated */
+	MTP_ERROR_COMM = TIZEN_ERROR_MTP | 0x04, /**< MTP communication error */
+	MTP_ERROR_CONTROLLER = TIZEN_ERROR_MTP | 0x05, /**< MTP controller is failed */
+	MTP_ERROR_NOT_INITIALIZED = TIZEN_ERROR_MTP | 0x06, /**< MTP is not initiatlized */
+	MTP_ERROR_NOT_ACTIVATED = TIZEN_ERROR_MTP | 0x07, /**< MTP is not activated */
 	MTP_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED, /**< MTP is not supported */
+	MTP_ERROR_NOT_COMM_INITIALIZED = TIZEN_ERROR_MTP | 0x08 /**< MTP communication is not initiatlized */
 } mtp_error_e;
 
 typedef enum {
@@ -86,11 +90,11 @@ typedef enum {
 	MTP_PROPERTY_DATA_CREATED,
 	MTP_PROPERTY_DATA_MODIFIED,
 	MTP_PROPERTY_FORMAT,
-	MTP_PROPERTY_IMAGE_FIX_DEPTH,
+	MTP_PROPERTY_IMAGE_BIT_DEPTH,
 	MTP_PROPERTY_IMAGE_FIX_WIDTH,
 	MTP_PROPERTY_IMAGE_FIX_HEIGHT,
 	MTP_PROPERTY_PARENT_OBJECT_HANDLE,
-	MTP_PROPERTY_STORAGE_ID,
+	MTP_PROPERTY_STORAGE,
 	MTP_PROPERTY_THUMBNAIL_SIZE,
 	MTP_PROPERTY_THUMBNAIL_FORMAT,
 	MTP_PROPERTY_THUMBNAIL_WIDTH,
@@ -107,7 +111,7 @@ typedef enum {
 	MTP_INITIATOR_EVENT_OBJECT_REMOVED,
 	MTP_INITIATOR_EVENT_DEVICE_ADDED,
 	MTP_INITIATOR_EVENT_DEVICE_REMOVED,
-	MTP_INITIATOR_EVENT_DAEMON_TERMINATED
+	MTP_INITIATOR_EVENT_TURNED_OFF
 } mtp_event;
 
 /* struct */
@@ -120,6 +124,7 @@ typedef struct _mtp_param mtp_param;
 struct _mtp_device_info {
 	LIBMTP_mtpdevice_t *device;
 	int bus_location;
+	int device_number;
 	char *model_name;
 };
 

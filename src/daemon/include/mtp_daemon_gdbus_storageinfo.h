@@ -22,36 +22,36 @@
 gboolean storageinfo_get_description(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data);
 
 gboolean storageinfo_get_freespace(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data);
 
 gboolean storageinfo_get_maxcapacity(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data);
 
 gboolean storageinfo_get_storagetype(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data);
 
 gboolean storageinfo_get_volumeidentifier(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data);
 
 #endif

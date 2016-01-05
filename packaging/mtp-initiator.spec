@@ -1,6 +1,6 @@
 Name:       mtp-initiator
 Summary:    mtp(media transfer protocol) initiator
-Version:    1.3.2
+Version:    1.4.0
 Release:    1
 Group:      Network & Connectivity/Other
 License:    Apache-2.0

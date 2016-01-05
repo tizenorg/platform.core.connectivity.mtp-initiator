@@ -19,28 +19,29 @@
 
 #include "mtp_daemon.h"
 
-gboolean manager_get_device_list(
+gboolean manager_get_raw_devices(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
 		gpointer user_data);
 
-gboolean manager_get_device_handle(
+gboolean manager_get_device(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
 		gint bus_location,
+		gint device_number,
 		gpointer user_data);
 
-gboolean manager_get_storage_ids(
+gboolean manager_get_storages(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gpointer user_data);
 
 gboolean manager_get_object_handles(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gint format,
 		gint parent_object_handle,
 		gpointer user_data);
@@ -48,7 +49,7 @@ gboolean manager_get_object_handles(
 gboolean manager_get_object(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gchar *dest_path,
 		gpointer user_data);
@@ -56,7 +57,7 @@ gboolean manager_get_object(
 gboolean manager_get_thumbnail(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gchar *dest_path,
 		gpointer user_data);
@@ -64,7 +65,7 @@ gboolean manager_get_thumbnail(
 gboolean manager_delete_object(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gpointer user_data);
 

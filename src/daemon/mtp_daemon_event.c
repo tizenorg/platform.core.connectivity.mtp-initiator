@@ -60,7 +60,8 @@ static void __print_device_list(mtp_context *mtp_ctx)
 		device_info = (mtp_device_info *)mtp_ctx->device_list->device_info_list[slot];
 
 		if (device_info != NULL)
-			MTP_LOGI("%d. bus %d, %s, %p", slot, device_info->bus_location, device_info->model_name, device_info->device);
+			MTP_LOGI("%d. bus %d, dev %d, %s, %p", slot, device_info->bus_location,
+				device_info->device_number, device_info->model_name, device_info->device);
 		else
 			MTP_LOGI("empty slot %d", slot);
 	}
@@ -93,13 +94,11 @@ static void __wait_smack_labeling(char *usb_node)
 
 		MTP_LOGI("check_count: %d, label: %s", check_count, label);
 
-		if (label[0] == NULL)
-			continue;
-		else if (!strcmp(label, "*"))
+		if (!strcmp(label, "*"))
 			break;
 
 		usleep(50*1000); /* 50ms */
-	} while (check_count++ < 50);
+	} while (check_count++ < 100);
 }
 
 static int __parsing_usb_busno(const char *devpath)
@@ -288,6 +287,7 @@ void __usb_host_status_changed_cb(const char *dev_path, int bus_no, usbhost_stat
 
 				device_info->device = device;
 				device_info->bus_location = raw_devices[slot].bus_location;
+				device_info->device_number = raw_devices[slot].devnum;
 				device_info->model_name = LIBMTP_Get_Modelname(device);
 
 				empty_slot = __search_empty_slot(mtp_ctx);
@@ -384,7 +384,7 @@ static void* __event_thread(gpointer dev, gpointer data)
 	__print_device_list(mtp_ctx);
 
 	if (mtp_ctx->device_list->device_num == 0) {
-		mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_DAEMON_TERMINATED, 0, mtp_ctx);
+		mtp_daemon_gdbus_emit_event(MTP_INITIATOR_EVENT_TURNED_OFF, 0, mtp_ctx);
 		g_main_loop_quit(mtp_ctx->main_loop);
 	}
 
@@ -434,13 +434,14 @@ mtp_error_e __device_list_init(mtp_context *mtp_ctx)
 
 		device_info->device = device;
 		device_info->bus_location = rawdevices[device_index].bus_location;
+		device_info->device_number = rawdevices[device_index].devnum;
 		device_info->model_name = LIBMTP_Get_Modelname(device);
 
 		if (device_info->model_name == NULL) {
 			MTP_LOGE("Device: (NULL)");
 			device_info->model_name = strdup(tmp_name);
 		}
-		MTP_LOGI("Device: %s, Bus: %d", device_info->model_name, device_info->bus_location);
+		MTP_LOGI("Device: %s, Bus: %d DevNo: %d", device_info->model_name, device_info->bus_location, device_info->device_number);
 
 		empty_slot = __search_empty_slot(mtp_ctx);
 		if (empty_slot < 0)
@@ -508,7 +509,7 @@ mtp_error_e mtp_daemon_event_init(mtp_context *mtp_ctx)
 		device_info = (mtp_device_info *)mtp_ctx->device_list->device_info_list[slot];
 
 		if (device_info != NULL) {
-			MTP_LOGI("%d. bus %d, %p", slot, device_info->bus_location, device_info->device);
+			MTP_LOGI("%d. bus %d, dev %d, %p", slot, device_info->bus_location, device_info->device_number, device_info->device);
 
 			g_thread_pool_push(mtp_ctx->device_list->threads,
 				(gpointer) device_info->device, NULL);
@@ -517,8 +518,10 @@ mtp_error_e mtp_daemon_event_init(mtp_context *mtp_ctx)
 
 	MTP_LOGI("number of Devices and Thread is %d", mtp_ctx->device_list->device_num);
 
-	if (mtp_ctx->device_list->device_num == 0)
+	if (mtp_ctx->device_list->device_num == 0) {
+		MTP_LOGE("No Device !!");
 		return MTP_ERROR_NO_DEVICE;
+	}
 
 	return ret;
 }

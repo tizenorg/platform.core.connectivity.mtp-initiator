@@ -37,20 +37,20 @@ static gboolean __manager_init(mtp_context *mtp_ctx)
 	/* Register for method callbacks as signal callbacks */
 	g_signal_connect(
 			manager_skeleton,
-			"handle-get-device-list",
-			G_CALLBACK(manager_get_device_list),
+			"handle-get-raw-devices",
+			G_CALLBACK(manager_get_raw_devices),
 			mtp_ctx);
 
 	g_signal_connect(
 			manager_skeleton,
-			"handle-get-device-handle",
-			G_CALLBACK(manager_get_device_handle),
+			"handle-get-device",
+			G_CALLBACK(manager_get_device),
 			mtp_ctx);
 
 	g_signal_connect(
 			manager_skeleton,
-			"handle-get-storage-ids",
-			G_CALLBACK(manager_get_storage_ids),
+			"handle-get-storages",
+			G_CALLBACK(manager_get_storages),
 			mtp_ctx);
 
 	g_signal_connect(

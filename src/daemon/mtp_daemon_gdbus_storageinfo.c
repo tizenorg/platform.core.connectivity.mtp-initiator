@@ -23,7 +23,7 @@ static void __storageinfo_get_description_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	LIBMTP_mtpdevice_t *device = NULL;
 	LIBMTP_devicestorage_t *storage = NULL;
 	mtp_device_info *device_info = NULL;
@@ -42,11 +42,11 @@ static void __storageinfo_get_description_thread_func(gpointer user_data)
 	if (device_info != NULL) {
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-		storage_id = param->param2;
-		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
+		mtp_storage = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, mtp_storage: %d", device_id, device, mtp_storage);
 
 		storage = mtp_daemon_util_get_storage_handle(device,
-			storage_id, param->mtp_ctx);
+			mtp_storage, param->mtp_ctx);
 
 		if (storage)
 			name = storage->StorageDescription;
@@ -70,7 +70,7 @@ static void __storageinfo_get_freespace_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	LIBMTP_mtpdevice_t *device = NULL;
 	LIBMTP_devicestorage_t *storage = NULL;
 	mtp_device_info *device_info = NULL;
@@ -89,11 +89,11 @@ static void __storageinfo_get_freespace_thread_func(gpointer user_data)
 	if (device_info != NULL) {
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-		storage_id = param->param2;
-		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
+		mtp_storage = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, mtp_storage: %d", device_id, device, mtp_storage);
 
 		storage = mtp_daemon_util_get_storage_handle(device,
-			storage_id, param->mtp_ctx);
+			mtp_storage, param->mtp_ctx);
 
 		if (storage)
 			value = storage->FreeSpaceInBytes;
@@ -117,7 +117,7 @@ static void __storageinfo_get_maxcapacity_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	LIBMTP_mtpdevice_t *device = NULL;
 	LIBMTP_devicestorage_t *storage = NULL;
 	mtp_device_info *device_info = NULL;
@@ -136,11 +136,11 @@ static void __storageinfo_get_maxcapacity_thread_func(gpointer user_data)
 	if (device_info != NULL) {
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-		storage_id = param->param2;
-		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
+		mtp_storage = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, mtp_storage: %d", device_id, device, mtp_storage);
 
 		storage = mtp_daemon_util_get_storage_handle(device,
-			storage_id, param->mtp_ctx);
+			mtp_storage, param->mtp_ctx);
 
 		if (storage)
 			value = storage->MaxCapacity;
@@ -164,7 +164,7 @@ static void __storageinfo_get_storagetype_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	LIBMTP_mtpdevice_t *device = NULL;
 	LIBMTP_devicestorage_t *storage = NULL;
 	mtp_device_info *device_info = NULL;
@@ -183,11 +183,11 @@ static void __storageinfo_get_storagetype_thread_func(gpointer user_data)
 	if (device_info != NULL) {
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-		storage_id = param->param2;
-		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
+		mtp_storage = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, mtp_storage: %d", device_id, device, mtp_storage);
 
 		storage = mtp_daemon_util_get_storage_handle(device,
-			storage_id, param->mtp_ctx);
+			mtp_storage, param->mtp_ctx);
 
 		if (storage)
 			value = storage->StorageType;
@@ -211,7 +211,7 @@ static void __storageinfo_get_volumeidentifier_thread_func(gpointer user_data)
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	LIBMTP_mtpdevice_t *device = NULL;
 	LIBMTP_devicestorage_t *storage = NULL;
 	mtp_device_info *device_info = NULL;
@@ -230,11 +230,11 @@ static void __storageinfo_get_volumeidentifier_thread_func(gpointer user_data)
 	if (device_info != NULL) {
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 
-		storage_id = param->param2;
-		MTP_LOGI("device_id: %d, device: %p, storage_id: %d", device_id, device, storage_id);
+		mtp_storage = param->param2;
+		MTP_LOGI("device_id: %d, device: %p, mtp_storage: %d", device_id, device, mtp_storage);
 
 		storage = mtp_daemon_util_get_storage_handle(device,
-			storage_id, param->mtp_ctx);
+			mtp_storage, param->mtp_ctx);
 
 		if (storage)
 			name = storage->VolumeIdentifier;
@@ -256,8 +256,8 @@ static void __storageinfo_get_volumeidentifier_thread_func(gpointer user_data)
 gboolean storageinfo_get_description(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -276,14 +276,14 @@ gboolean storageinfo_get_description(
 	param->object = g_object_ref(storageinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 
 	if (mtp_daemon_controller_push(__storageinfo_get_description_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -306,8 +306,8 @@ OUT:
 gboolean storageinfo_get_freespace(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -326,14 +326,14 @@ gboolean storageinfo_get_freespace(
 	param->object = g_object_ref(storageinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 
 	if (mtp_daemon_controller_push(__storageinfo_get_freespace_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -356,8 +356,8 @@ OUT:
 gboolean storageinfo_get_maxcapacity(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -376,14 +376,14 @@ gboolean storageinfo_get_maxcapacity(
 	param->object = g_object_ref(storageinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 
 	if (mtp_daemon_controller_push(__storageinfo_get_maxcapacity_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -406,8 +406,8 @@ OUT:
 gboolean storageinfo_get_storagetype(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -426,14 +426,14 @@ gboolean storageinfo_get_storagetype(
 	param->object = g_object_ref(storageinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 
 	if (mtp_daemon_controller_push(__storageinfo_get_storagetype_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -456,8 +456,8 @@ OUT:
 gboolean storageinfo_get_volumeidentifier(
 		mtpgdbuslibStorageinfo *storageinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -476,14 +476,14 @@ gboolean storageinfo_get_volumeidentifier(
 	param->object = g_object_ref(storageinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 
 	if (mtp_daemon_controller_push(__storageinfo_get_volumeidentifier_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}

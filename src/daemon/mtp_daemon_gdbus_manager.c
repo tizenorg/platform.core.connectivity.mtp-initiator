@@ -23,7 +23,7 @@
 #include <unistd.h>
 
 /* Device Manager */
-static void __manager_get_device_list_thread_func(gpointer user_data)
+static void __manager_get_raw_devices_thread_func(gpointer user_data)
 {
 	/* variable definition */
 	int count = 0;
@@ -63,14 +63,18 @@ static void __manager_get_device_list_thread_func(gpointer user_data)
 				g_variant_new_string(device_info->model_name));
 			g_variant_builder_add(&b, "{sv}", "bus_location",
 				g_variant_new_int32(device_info->bus_location));
+			g_variant_builder_add(&b, "{sv}", "device_number",
+				g_variant_new_int32(device_info->device_number));
 
 			g_variant_builder_close(&b);
+
+			MTP_LOGI("bus_location: %d, device_number : %d", device_info->bus_location, device_info->device_number);
 		}
 	}
 
 	gv = g_variant_builder_end(&b);
 
-	mtp_gdbuslib_manager_complete_get_device_list(object, param->invocation, count, gv, result);
+	mtp_gdbuslib_manager_complete_get_raw_devices(object, param->invocation, count, gv, result);
 
 	/* deinitializing */
 	g_object_unref(param->invocation);
@@ -78,7 +82,7 @@ static void __manager_get_device_list_thread_func(gpointer user_data)
 	g_free(param);
 }
 
-static void __manager_get_device_handle_thread_func(gpointer user_data)
+static void __manager_get_device_thread_func(gpointer user_data)
 {
 	/* variable definition */
 	mtp_param *param = (mtp_param *)user_data;
@@ -86,6 +90,7 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 	mtpgdbuslibManager *object;
 
 	int busno;
+	int devno;
 	int handle = -1;
 	int slot;
 
@@ -98,6 +103,7 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 
 	/* parameter unpacking */
 	busno = (int)(param->param1);
+	devno = (int)(param->param2);
 	object = (mtpgdbuslibManager *)(param->object);
 
 	/* do process */
@@ -105,7 +111,8 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 		mtp_device_info *device_info = NULL;
 		device_info = param->mtp_ctx->device_list->device_info_list[slot];
 
-		if (device_info != NULL && busno == device_info->bus_location) {
+		if (device_info != NULL && busno == device_info->bus_location &&
+			devno == device_info->device_number) {
 			handle = slot;
 			MTP_LOGI("handle: %d, device: %p", handle, device_info->device);
 			break;
@@ -113,13 +120,13 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 	}
 
 	if (handle != -1)
-		MTP_LOGI("found MTP device - handle: %p, bus: %d", handle, busno);
+		MTP_LOGI("found MTP device - handle: %p, bus: %d, dev: %d", handle, busno, devno);
 	else {
 		MTP_LOGE("!!! not found MTP device handle - bus: %d", busno);
 		result = MTP_ERROR_NO_DEVICE;
 	}
 
-	mtp_gdbuslib_manager_complete_get_device_handle(object, param->invocation, handle, result);
+	mtp_gdbuslib_manager_complete_get_device(object, param->invocation, handle, result);
 
 	/* deinitializing */
 	g_object_unref(param->invocation);
@@ -127,7 +134,7 @@ static void __manager_get_device_handle_thread_func(gpointer user_data)
 	g_free(param);
 }
 
-static void __manager_get_storage_ids_thread_func(gpointer user_data)
+static void __manager_get_storages_thread_func(gpointer user_data)
 {
 	/* variable definition */
 	mtp_param *param = (mtp_param *)user_data;
@@ -167,7 +174,7 @@ static void __manager_get_storage_ids_thread_func(gpointer user_data)
 
 			g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
 
-			g_variant_builder_add(&b, "{sv}", "storage_id",
+			g_variant_builder_add(&b, "{sv}", "mtp_storage",
 				g_variant_new_int32(storage->id));
 
 			g_variant_builder_close(&b);
@@ -183,7 +190,7 @@ static void __manager_get_storage_ids_thread_func(gpointer user_data)
 
 	MTP_LOGI("storage_num: %d", count);
 
-	mtp_gdbuslib_manager_complete_get_storage_ids(param->object,
+	mtp_gdbuslib_manager_complete_get_storages(param->object,
 		param->invocation, count, gv, result);
 
 	/* deinitializing */
@@ -203,7 +210,7 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 	int ret;
 	int slot;
 	int device_id;
-	int storage_id;
+	int mtp_storage;
 	int format;
 	int parent_object_handle;
 	int *object_list = NULL;
@@ -223,7 +230,7 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 
 	/* parameter unpacking */
 	device_id = param->param1;
-	storage_id = param->param2;
+	mtp_storage = param->param2;
 	format = param->param3;
 	parent_object_handle = param->param4;
 
@@ -236,7 +243,7 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 		param->param1, param->param2, param->param3, param->param4, device);
 
 	if (device_info != NULL) {
-		ret = LIBMTP_Get_Object_Handles(device, (uint32_t)storage_id,
+		ret = LIBMTP_Get_Object_Handles(device, (uint32_t)mtp_storage,
 			(uint32_t)format, (uint32_t)parent_object_handle,
 			(uint32_t **)&object_list, (uint32_t *)&total_object_num);
 
@@ -265,7 +272,7 @@ static void __manager_get_object_handles_thread_func(gpointer user_data)
 				object_info = LIBMTP_Get_Object_Info(device, (uint32_t)object_list[slot]);
 
 				if (object_info != NULL)
-					mtp_daemon_db_insert(device_id, storage_id, object_list[slot], object_info, param->mtp_ctx);
+					mtp_daemon_db_insert(device_id, mtp_storage, object_list[slot], object_info, param->mtp_ctx);
 			} else {
 				MTP_LOGI("Objectinfo is stored. device_id: %d, object_list[%d]: %d",
 					device_id, slot, object_list[slot]);
@@ -361,7 +368,7 @@ static void __manager_get_object_thread_func(gpointer user_data)
 
 		if (fd < 0) {
 			MTP_LOGE("file open fail - fd: %d, dest_path: %s", fd, dest_path);
-			result = MTP_ERROR_GENERAL;
+			result = MTP_ERROR_IO;
 		} else {
 			ret = LIBMTP_Get_File_To_File_Descriptor(device, object_handle, fd, NULL, NULL);
 
@@ -435,7 +442,7 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 
 		if (fd < 0) {
 			MTP_LOGE("file open fail - fd: %d, dest_path: %s", fd, dest_path);
-			result = MTP_ERROR_GENERAL;
+			result = MTP_ERROR_IO;
 		} else {
 			ret = LIBMTP_Get_Thumbnail(device, object_handle, &thumb_data, &thumb_size);
 
@@ -515,7 +522,7 @@ static void __manager_delete_object_thread_func(gpointer user_data)
 }
 
 /* Device Manager */
-gboolean manager_get_device_list(
+gboolean manager_get_raw_devices(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
 		gpointer user_data)
@@ -537,11 +544,11 @@ gboolean manager_get_device_list(
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
 
-	if (mtp_daemon_controller_push(__manager_get_device_list_thread_func, param, param->mtp_ctx)
+	if (mtp_daemon_controller_push(__manager_get_raw_devices_thread_func, param, param->mtp_ctx)
 		!= MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -556,15 +563,16 @@ OUT:
 		g_free(param);
 	}
 
-	mtp_gdbuslib_manager_complete_get_device_list(manager, invocation, 0, NULL, result);
+	mtp_gdbuslib_manager_complete_get_raw_devices(manager, invocation, 0, NULL, result);
 
 	return TRUE;
 }
 
-gboolean manager_get_device_handle(
+gboolean manager_get_device(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
 		gint busno,
+		gint devno,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -584,12 +592,13 @@ gboolean manager_get_device_handle(
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
 	param->param1 = busno;
+	param->param2 = devno;
 
-	if (mtp_daemon_controller_push(__manager_get_device_handle_thread_func,
+	if (mtp_daemon_controller_push(__manager_get_device_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -604,15 +613,15 @@ OUT:
 		g_free(param);
 	}
 
-	mtp_gdbuslib_manager_complete_get_device_handle(manager, invocation, 0, result);
+	mtp_gdbuslib_manager_complete_get_device(manager, invocation, 0, result);
 
 	return TRUE;
 }
 
-gboolean manager_get_storage_ids(
+gboolean manager_get_storages(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gpointer user_data)
 {
 	mtp_param *param = NULL;
@@ -631,13 +640,13 @@ gboolean manager_get_storage_ids(
 	param->object = g_object_ref(manager);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 
-	if (mtp_daemon_controller_push(__manager_get_storage_ids_thread_func,
+	if (mtp_daemon_controller_push(__manager_get_storages_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -652,7 +661,7 @@ OUT:
 		g_free(param);
 	}
 
-	mtp_gdbuslib_manager_complete_get_storage_ids(manager,
+	mtp_gdbuslib_manager_complete_get_storages(manager,
 		invocation, 0, NULL, result);
 
 	return TRUE;
@@ -661,8 +670,8 @@ OUT:
 gboolean manager_get_object_handles(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
-		gint storage_id,
+		gint mtp_device,
+		gint mtp_storage,
 		gint format,
 		gint parent_object_handle,
 		gpointer user_data)
@@ -683,8 +692,8 @@ gboolean manager_get_object_handles(
 	param->object = g_object_ref(manager);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
-	param->param2 = storage_id;
+	param->param1 = mtp_device;
+	param->param2 = mtp_storage;
 	param->param3 = format;
 	param->param4 = parent_object_handle;
 
@@ -692,7 +701,7 @@ gboolean manager_get_object_handles(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -716,7 +725,7 @@ OUT:
 gboolean manager_get_object(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gchar *dest_path,
 		gpointer user_data)
@@ -737,7 +746,7 @@ gboolean manager_get_object(
 	param->object = g_object_ref(manager);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 	param->param2 = object_handle;
 	param->char_param1 = g_strdup(dest_path);
 
@@ -745,7 +754,7 @@ gboolean manager_get_object(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -768,7 +777,7 @@ OUT:
 gboolean manager_get_thumbnail(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gchar *dest_path,
 		gpointer user_data)
@@ -789,7 +798,7 @@ gboolean manager_get_thumbnail(
 	param->object = g_object_ref(manager);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 	param->param2 = object_handle;
 	param->char_param1 = g_strdup(dest_path);
 
@@ -797,7 +806,7 @@ gboolean manager_get_thumbnail(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -823,7 +832,7 @@ OUT:
 gboolean manager_delete_object(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gpointer user_data)
 {
@@ -843,14 +852,14 @@ gboolean manager_delete_object(
 	param->object = g_object_ref(manager);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 	param->param2 = object_handle;
 
 	if (mtp_daemon_controller_push(__manager_delete_object_thread_func,
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}

@@ -23,7 +23,7 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device_handle = NULL;
+	LIBMTP_mtpdevice_t *mtp_device = NULL;
 	mtp_device_info *device_info = NULL;
 	int device_id;
 	int object_handle;
@@ -45,13 +45,13 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
 	if (device_info != NULL) {
-		device_handle = (LIBMTP_mtpdevice_t *)device_info->device;
+		mtp_device = (LIBMTP_mtpdevice_t *)device_info->device;
 		/*MTP_LOGI("device_id: %d, device: %p", device_id, device_handle);*/
 
 		MTP_LOGI("Get property start - property %d", property);
 
 		if (mtp_daemon_db_is_exist(device_id, object_handle, param->mtp_ctx) == false) {
-			object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+			object_info = LIBMTP_Get_Object_Info(mtp_device, object_handle);
 
 			if (object_info != NULL)
 				mtp_daemon_db_insert(device_id, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
@@ -73,7 +73,7 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 			case MTP_PROPERTY_FORMAT:
 				property_value = object_info->ObjectFormat;
 				break;
-			case MTP_PROPERTY_IMAGE_FIX_DEPTH:
+			case MTP_PROPERTY_IMAGE_BIT_DEPTH:
 				property_value = object_info->ImageBitDepth;
 				break;
 			case MTP_PROPERTY_IMAGE_FIX_WIDTH:
@@ -85,7 +85,7 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 			case MTP_PROPERTY_PARENT_OBJECT_HANDLE:
 				property_value = object_info->ParentObject;
 				break;
-			case MTP_PROPERTY_STORAGE_ID:
+			case MTP_PROPERTY_STORAGE:
 				property_value = object_info->StorageID;
 				break;
 			case MTP_PROPERTY_THUMBNAIL_SIZE:
@@ -135,7 +135,7 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 {
 	mtp_param *param = (mtp_param *)user_data;
 	mtp_error_e result = MTP_ERROR_NONE;
-	LIBMTP_mtpdevice_t *device_handle = NULL;
+	LIBMTP_mtpdevice_t *mtp_device = NULL;
 	mtp_device_info *device_info = NULL;
 	int device_id;
 	int object_handle;
@@ -157,13 +157,13 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 	device_info = (mtp_device_info *)param->mtp_ctx->device_list->device_info_list[device_id];
 
 	if (device_info != NULL) {
-		device_handle = (LIBMTP_mtpdevice_t *)device_info->device;
+		mtp_device = (LIBMTP_mtpdevice_t *)device_info->device;
 		/*MTP_LOGI("device_id: %d, device: %p", device_id, device_handle);*/
 
 		MTP_LOGI("Get property start - property %d", property);
 
 		if (mtp_daemon_db_is_exist(device_id, object_handle, param->mtp_ctx) == false) {
-			object_info = LIBMTP_Get_Object_Info(device_handle, object_handle);
+			object_info = LIBMTP_Get_Object_Info(mtp_device, object_handle);
 
 			if (object_info != NULL)
 				mtp_daemon_db_insert(device_id, object_info->StorageID, object_handle, object_info, param->mtp_ctx);
@@ -207,7 +207,7 @@ static void __objectinfo_get_property_string_thread_func(gpointer user_data)
 gboolean objectinfo_get_property(
 		mtpgdbuslibObjectinfo *objectinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gint property,
 		gpointer user_data)
@@ -228,7 +228,7 @@ gboolean objectinfo_get_property(
 	param->object = g_object_ref(objectinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 	param->param2 = object_handle;
 	param->param3 = property;
 
@@ -236,7 +236,7 @@ gboolean objectinfo_get_property(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -260,7 +260,7 @@ OUT:
 gboolean objectinfo_get_property_string(
 		mtpgdbuslibObjectinfo *objectinfo,
 		GDBusMethodInvocation *invocation,
-		gint device_handle,
+		gint mtp_device,
 		gint object_handle,
 		gint property,
 		gpointer user_data)
@@ -282,7 +282,7 @@ gboolean objectinfo_get_property_string(
 	param->object = g_object_ref(objectinfo);
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = device_handle;
+	param->param1 = mtp_device;
 	param->param2 = object_handle;
 	param->param3 = property;
 
@@ -290,7 +290,7 @@ gboolean objectinfo_get_property_string(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}

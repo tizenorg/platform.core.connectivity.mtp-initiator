@@ -219,7 +219,7 @@ gboolean deviceinfo_get_manufacturername(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -268,7 +268,7 @@ gboolean deviceinfo_get_modelname(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -316,7 +316,7 @@ gboolean deviceinfo_get_serialnumber(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
@@ -364,7 +364,7 @@ gboolean deviceinfo_get_deviceversion(
 		param, param->mtp_ctx) != MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_GENERAL;
+		result = MTP_ERROR_CONTROLLER;
 
 		goto OUT;
 	}
