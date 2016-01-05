@@ -76,10 +76,10 @@ static void __objectinfo_get_property_thread_func(gpointer user_data)
 			case MTP_PROPERTY_IMAGE_BIT_DEPTH:
 				property_value = object_info->ImageBitDepth;
 				break;
-			case MTP_PROPERTY_IMAGE_FIX_WIDTH:
+			case MTP_PROPERTY_IMAGE_PIX_WIDTH:
 				property_value = object_info->ImagePixWidth;
 				break;
-			case MTP_PROPERTY_IMAGE_FIX_HEIGHT:
+			case MTP_PROPERTY_IMAGE_PIX_HEIGHT:
 				property_value = object_info->ImagePixHeight;
 				break;
 			case MTP_PROPERTY_PARENT_OBJECT_HANDLE:
