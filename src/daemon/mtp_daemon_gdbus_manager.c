@@ -368,13 +368,13 @@ static void __manager_get_object_thread_func(gpointer user_data)
 
 		if (fd < 0) {
 			MTP_LOGE("file open fail - fd: %d, dest_path: %s", fd, dest_path);
-			result = MTP_ERROR_IO;
+			result = MTP_ERROR_IO_ERROR;
 		} else {
 			ret = LIBMTP_Get_File_To_File_Descriptor(device, object_handle, fd, NULL, NULL);
 
 			if (ret != 0) {
 				MTP_LOGE("get descriptor fail - ret: %d", ret);
-				result = MTP_ERROR_PLUGIN;
+				result = MTP_ERROR_PLUGIN_FAIL;
 			}
 
 			close(fd);
@@ -442,7 +442,7 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 
 		if (fd < 0) {
 			MTP_LOGE("file open fail - fd: %d, dest_path: %s", fd, dest_path);
-			result = MTP_ERROR_IO;
+			result = MTP_ERROR_IO_ERROR;
 		} else {
 			ret = LIBMTP_Get_Thumbnail(device, object_handle, &thumb_data, &thumb_size);
 
@@ -452,7 +452,7 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 					result = MTP_ERROR_ALLOC_FAIL;
 			} else {
 				MTP_LOGE("get thumbnail fail - ret: %d", ret);
-				result = MTP_ERROR_PLUGIN;
+				result = MTP_ERROR_PLUGIN_FAIL;
 			}
 
 			close(fd);
@@ -506,7 +506,7 @@ static void __manager_delete_object_thread_func(gpointer user_data)
 
 		ret = LIBMTP_Delete_Object(device, object_handle);
 		if (ret != 0)
-			result = MTP_ERROR_PLUGIN;
+			result = MTP_ERROR_PLUGIN_FAIL;
 	} else {
 		MTP_LOGE("!!! no MTP device");
 		result = MTP_ERROR_NO_DEVICE;

@@ -69,13 +69,13 @@ typedef void (*mtp_controller_func)(gpointer user_data);
 /* enum */
 typedef enum {
 	MTP_ERROR_NONE = TIZEN_ERROR_NONE, /**< Successful */
-	MTP_ERROR_IO = TIZEN_ERROR_IO_ERROR, /**< I/O error */
+	MTP_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR, /**< I/O error */
 	MTP_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid parameter */
 	MTP_ERROR_NO_DEVICE = TIZEN_ERROR_MTP | 0x01, /**< MTP have not any device */
 	MTP_ERROR_ALLOC_FAIL = TIZEN_ERROR_MTP | 0x02, /**< Memory Allocation failed */
-	MTP_ERROR_PLUGIN = TIZEN_ERROR_MTP | 0x03, /**< Plugin failed */
+	MTP_ERROR_PLUGIN_FAIL = TIZEN_ERROR_MTP | 0x03, /**< Plugin failed */
 	MTP_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
-	MTP_ERROR_COMM = TIZEN_ERROR_MTP | 0x04, /**< MTP communication error */
+	MTP_ERROR_COMM_ERROR = TIZEN_ERROR_MTP | 0x04, /**< MTP communication error */
 	MTP_ERROR_CONTROLLER = TIZEN_ERROR_MTP | 0x05, /**< MTP controller is failed */
 	MTP_ERROR_NOT_INITIALIZED = TIZEN_ERROR_MTP | 0x06, /**< MTP is not initiatlized */
 	MTP_ERROR_NOT_ACTIVATED = TIZEN_ERROR_MTP | 0x07, /**< MTP is not activated */

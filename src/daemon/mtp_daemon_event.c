@@ -214,7 +214,7 @@ static int __dbus_subscribe_usb_host_event(device_changed_cb usr_callback, void 
 		if (!g_usb_bus) {
 			MTP_LOGE("Failed to connect to the g D-BUS daemon: %s", error->message);
 			g_error_free(error);
-			ret = MTP_ERROR_PLUGIN;
+			ret = MTP_ERROR_PLUGIN_FAIL;
 			goto ERROR;
 		}
 	}
