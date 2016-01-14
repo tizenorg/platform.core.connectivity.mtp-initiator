@@ -445,8 +445,10 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 			result = MTP_ERROR_IO_ERROR;
 		} else {
 			ret = LIBMTP_Get_Thumbnail_From_Exif_Data(device, object_handle, &thumb_data, &thumb_size);
-			if (ret != 0)
+			if (ret != 0) {
+				MTP_LOGE("exif data parsing fail - ret: %d", ret);
 				ret = LIBMTP_Get_Thumbnail(device, object_handle, &thumb_data, &thumb_size);
+			}
 
 			if (ret == 0) {
 				ret = write(fd, thumb_data, thumb_size);
