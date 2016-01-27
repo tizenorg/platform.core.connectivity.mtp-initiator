@@ -71,16 +71,16 @@ typedef enum {
 	MTP_ERROR_NONE = TIZEN_ERROR_NONE, /**< Successful */
 	MTP_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR, /**< I/O error */
 	MTP_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid parameter */
-	MTP_ERROR_NO_DEVICE = TIZEN_ERROR_MTP | 0x01, /**< MTP have not any device */
-	MTP_ERROR_ALLOC_FAIL = TIZEN_ERROR_MTP | 0x02, /**< Memory Allocation failed */
-	MTP_ERROR_PLUGIN_FAIL = TIZEN_ERROR_MTP | 0x03, /**< Plugin failed */
+	MTP_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY, /**< Out of memory */
 	MTP_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
-	MTP_ERROR_COMM_ERROR = TIZEN_ERROR_MTP | 0x04, /**< MTP communication error */
-	MTP_ERROR_CONTROLLER = TIZEN_ERROR_MTP | 0x05, /**< MTP controller is failed */
-	MTP_ERROR_NOT_INITIALIZED = TIZEN_ERROR_MTP | 0x06, /**< MTP is not initiatlized */
-	MTP_ERROR_NOT_ACTIVATED = TIZEN_ERROR_MTP | 0x07, /**< MTP is not activated */
-	MTP_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED, /**< MTP is not supported */
-	MTP_ERROR_NOT_COMM_INITIALIZED = TIZEN_ERROR_MTP | 0x08 /**< MTP communication is not initiatlized */
+	MTP_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED, /**< Not supported */
+	MTP_ERROR_COMM_ERROR = TIZEN_ERROR_MTP | 0x01, /**< MTP communication error */
+	MTP_ERROR_CONTROLLER = TIZEN_ERROR_MTP | 0x02, /**< MTP controller error */
+	MTP_ERROR_NO_DEVICE = TIZEN_ERROR_MTP | 0x03, /**< MTP have not any device */
+	MTP_ERROR_NOT_INITIALIZED = TIZEN_ERROR_MTP | 0x04, /**< MTP is not initialized */
+	MTP_ERROR_NOT_ACTIVATED = TIZEN_ERROR_MTP | 0x05, /**< MTP is not activated */
+	MTP_ERROR_NOT_COMM_INITIALIZED = TIZEN_ERROR_MTP | 0x06, /**< MTP communication is not initialized */
+	MTP_ERROR_PLUGIN_FAIL = TIZEN_ERROR_MTP | 0x07, /**< MTP Plugin failed */
 } mtp_error_e;
 
 typedef enum {

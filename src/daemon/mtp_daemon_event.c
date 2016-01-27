@@ -203,7 +203,7 @@ static int __dbus_subscribe_usb_host_event(device_changed_cb usr_callback, void 
 	g_usb_cb_data = malloc(sizeof(device_cb_data));
 	if (g_usb_cb_data == NULL) {
 		MTP_LOGE("malloc failed");
-		return MTP_ERROR_ALLOC_FAIL;
+		return MTP_ERROR_OUT_OF_MEMORY;
 	}
 
 	g_usb_cb_data->usr_cb = usr_callback;

@@ -19,26 +19,38 @@
 
 #include "mtp_daemon.h"
 
-gboolean deviceinfo_get_manufacturername(
+gboolean deviceinfo_get_manufacturer_name(
 		mtpgdbuslibDeviceinfo *device,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gpointer user_data);
 
-gboolean deviceinfo_get_modelname(
+gboolean deviceinfo_get_model_name(
 		mtpgdbuslibDeviceinfo *device,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gpointer user_data);
 
-gboolean deviceinfo_get_serialnumber(
+gboolean deviceinfo_get_serial_number(
 		mtpgdbuslibDeviceinfo *device,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gpointer user_data);
 
-gboolean deviceinfo_get_deviceversion(
+gboolean deviceinfo_get_device_version(
 		mtpgdbuslibDeviceinfo *device,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
+gboolean deviceinfo_get_bus_location(
+		mtpgdbuslibDeviceinfo *deviceinfo,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
+gboolean deviceinfo_get_device_number(
+		mtpgdbuslibDeviceinfo *deviceinfo,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gpointer user_data);

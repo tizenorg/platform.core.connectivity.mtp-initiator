@@ -269,7 +269,7 @@ gboolean storageinfo_get_description(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -319,7 +319,7 @@ gboolean storageinfo_get_freespace(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -369,7 +369,7 @@ gboolean storageinfo_get_maxcapacity(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -419,7 +419,7 @@ gboolean storageinfo_get_storagetype(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -469,7 +469,7 @@ gboolean storageinfo_get_volumeidentifier(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 

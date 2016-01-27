@@ -37,14 +37,8 @@ static gboolean __manager_init(mtp_context *mtp_ctx)
 	/* Register for method callbacks as signal callbacks */
 	g_signal_connect(
 			manager_skeleton,
-			"handle-get-raw-devices",
-			G_CALLBACK(manager_get_raw_devices),
-			mtp_ctx);
-
-	g_signal_connect(
-			manager_skeleton,
-			"handle-get-device",
-			G_CALLBACK(manager_get_device),
+			"handle-get-devices",
+			G_CALLBACK(manager_get_devices),
 			mtp_ctx);
 
 	g_signal_connect(
@@ -111,26 +105,38 @@ static gboolean __deviceinfo_init(mtp_context *mtp_ctx)
 	/* Register for method callbacks as signal callbacks */
 	g_signal_connect(
 			deviceinfo_skeleton,
-			"handle-get-manufacturername",
-			G_CALLBACK(deviceinfo_get_manufacturername),
+			"handle-get-manufacturer-name",
+			G_CALLBACK(deviceinfo_get_manufacturer_name),
 			mtp_ctx);
 
 	g_signal_connect(
 			deviceinfo_skeleton,
-			"handle-get-modelname",
-			G_CALLBACK(deviceinfo_get_modelname),
+			"handle-get-model-name",
+			G_CALLBACK(deviceinfo_get_model_name),
 			mtp_ctx);
 
 	g_signal_connect(
 			deviceinfo_skeleton,
-			"handle-get-serialnumber",
-			G_CALLBACK(deviceinfo_get_serialnumber),
+			"handle-get-serial-number",
+			G_CALLBACK(deviceinfo_get_serial_number),
 			mtp_ctx);
 
 	g_signal_connect(
 			deviceinfo_skeleton,
-			"handle-get-deviceversion",
-			G_CALLBACK(deviceinfo_get_deviceversion),
+			"handle-get-device-version",
+			G_CALLBACK(deviceinfo_get_device_version),
+			mtp_ctx);
+
+	g_signal_connect(
+			deviceinfo_skeleton,
+			"handle-get-bus-location",
+			G_CALLBACK(deviceinfo_get_bus_location),
+			mtp_ctx);
+
+	g_signal_connect(
+			deviceinfo_skeleton,
+			"handle-get-device-number",
+			G_CALLBACK(deviceinfo_get_device_number),
 			mtp_ctx);
 
 	deviceinfo = g_dbus_object_manager_server_new(MTP_DBUS_DEVICEINFO_PATH);

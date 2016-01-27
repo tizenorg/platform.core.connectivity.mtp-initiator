@@ -22,8 +22,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-/* Device Manager */
-static void __manager_get_raw_devices_thread_func(gpointer user_data)
+/* Manager */
+static void __manager_get_devices_thread_func(gpointer user_data)
 {
 	/* variable definition */
 	int count = 0;
@@ -59,74 +59,19 @@ static void __manager_get_raw_devices_thread_func(gpointer user_data)
 		if (device_info != NULL) {
 			g_variant_builder_open(&b, G_VARIANT_TYPE("a{sv}"));
 
-			g_variant_builder_add(&b, "{sv}", "model_name",
-				g_variant_new_string(device_info->model_name));
-			g_variant_builder_add(&b, "{sv}", "bus_location",
-				g_variant_new_int32(device_info->bus_location));
-			g_variant_builder_add(&b, "{sv}", "device_number",
-				g_variant_new_int32(device_info->device_number));
+			g_variant_builder_add(&b, "{sv}", "mtp_device",
+				g_variant_new_int32(slot));
 
 			g_variant_builder_close(&b);
 
-			MTP_LOGI("bus_location: %d, device_number : %d", device_info->bus_location, device_info->device_number);
+			MTP_LOGI("mtp_device : %d, bus_location: %d, device_number : %d",
+				slot, device_info->bus_location, device_info->device_number);
 		}
 	}
 
 	gv = g_variant_builder_end(&b);
 
-	mtp_gdbuslib_manager_complete_get_raw_devices(object, param->invocation, count, gv, result);
-
-	/* deinitializing */
-	g_object_unref(param->invocation);
-	g_object_unref(param->object);
-	g_free(param);
-}
-
-static void __manager_get_device_thread_func(gpointer user_data)
-{
-	/* variable definition */
-	mtp_param *param = (mtp_param *)user_data;
-	mtp_error_e result = MTP_ERROR_NONE;
-	mtpgdbuslibManager *object;
-
-	int busno;
-	int devno;
-	int handle = -1;
-	int slot;
-
-	/* check precondition */
-	g_assert(param != NULL);
-	g_assert(param->object != NULL);
-	g_assert(param->invocation != NULL);
-
-	/*MTP_LOGI("%s", __func__);*/
-
-	/* parameter unpacking */
-	busno = (int)(param->param1);
-	devno = (int)(param->param2);
-	object = (mtpgdbuslibManager *)(param->object);
-
-	/* do process */
-	for (slot = 1; slot < MTP_MAX_SLOT; slot++) {
-		mtp_device_info *device_info = NULL;
-		device_info = param->mtp_ctx->device_list->device_info_list[slot];
-
-		if (device_info != NULL && busno == device_info->bus_location &&
-			devno == device_info->device_number) {
-			handle = slot;
-			MTP_LOGI("handle: %d, device: %p", handle, device_info->device);
-			break;
-		}
-	}
-
-	if (handle != -1)
-		MTP_LOGI("found MTP device - handle: %p, bus: %d, dev: %d", handle, busno, devno);
-	else {
-		MTP_LOGE("!!! not found MTP device handle - bus: %d", busno);
-		result = MTP_ERROR_NO_DEVICE;
-	}
-
-	mtp_gdbuslib_manager_complete_get_device(object, param->invocation, handle, result);
+	mtp_gdbuslib_manager_complete_get_devices(object, param->invocation, count, gv, result);
 
 	/* deinitializing */
 	g_object_unref(param->invocation);
@@ -451,7 +396,7 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 			if (ret == 0) {
 				ret = write(fd, thumb_data, thumb_size);
 				if (ret == 0)
-					result = MTP_ERROR_ALLOC_FAIL;
+					result = MTP_ERROR_OUT_OF_MEMORY;
 			} else {
 				MTP_LOGE("get thumbnail fail - ret: %d", ret);
 				result = MTP_ERROR_PLUGIN_FAIL;
@@ -523,8 +468,8 @@ static void __manager_delete_object_thread_func(gpointer user_data)
 	g_free(param);
 }
 
-/* Device Manager */
-gboolean manager_get_raw_devices(
+/* Manager */
+gboolean manager_get_devices(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
 		gpointer user_data)
@@ -538,7 +483,7 @@ gboolean manager_get_raw_devices(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -546,7 +491,7 @@ gboolean manager_get_raw_devices(
 	param->invocation = g_object_ref(invocation);
 	param->mtp_ctx = (mtp_context *)user_data;
 
-	if (mtp_daemon_controller_push(__manager_get_raw_devices_thread_func, param, param->mtp_ctx)
+	if (mtp_daemon_controller_push(__manager_get_devices_thread_func, param, param->mtp_ctx)
 		!= MTP_ERROR_NONE) {
 		/* return error if queue was blocked */
 		MTP_LOGE("controller is processing important message..");
@@ -565,57 +510,7 @@ OUT:
 		g_free(param);
 	}
 
-	mtp_gdbuslib_manager_complete_get_raw_devices(manager, invocation, 0, NULL, result);
-
-	return TRUE;
-}
-
-gboolean manager_get_device(
-		mtpgdbuslibManager *manager,
-		GDBusMethodInvocation *invocation,
-		gint busno,
-		gint devno,
-		gpointer user_data)
-{
-	mtp_param *param = NULL;
-	gint result = MTP_ERROR_NONE;
-
-	MTP_LOGI(">>> REQUEST from [%s]",
-		g_dbus_method_invocation_get_sender(invocation));
-
-	param = g_try_new0(mtp_param, 1);
-	if (param == NULL) {
-		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
-		goto OUT;
-	}
-
-	param->object = g_object_ref(manager);
-	param->invocation = g_object_ref(invocation);
-	param->mtp_ctx = (mtp_context *)user_data;
-	param->param1 = busno;
-	param->param2 = devno;
-
-	if (mtp_daemon_controller_push(__manager_get_device_thread_func,
-		param, param->mtp_ctx) != MTP_ERROR_NONE) {
-		/* return error if queue was blocked */
-		MTP_LOGE("controller is processing important message..");
-		result = MTP_ERROR_CONTROLLER;
-
-		goto OUT;
-	}
-
-	return TRUE;
-
-OUT:
-	if (param != NULL) {
-		g_object_unref(param->invocation);
-		g_object_unref(param->object);
-
-		g_free(param);
-	}
-
-	mtp_gdbuslib_manager_complete_get_device(manager, invocation, 0, result);
+	mtp_gdbuslib_manager_complete_get_devices(manager, invocation, 0, NULL, result);
 
 	return TRUE;
 }
@@ -635,7 +530,7 @@ gboolean manager_get_storages(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -687,7 +582,7 @@ gboolean manager_get_object_handles(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -741,7 +636,7 @@ gboolean manager_get_object(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -793,7 +688,7 @@ gboolean manager_get_thumbnail(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -847,7 +742,7 @@ gboolean manager_delete_object(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 

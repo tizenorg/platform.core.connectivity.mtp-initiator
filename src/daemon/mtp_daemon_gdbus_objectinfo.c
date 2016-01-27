@@ -221,7 +221,7 @@ gboolean objectinfo_get_property(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 
@@ -275,7 +275,7 @@ gboolean objectinfo_get_property_string(
 	param = g_try_new0(mtp_param, 1);
 	if (param == NULL) {
 		MTP_LOGE("Memory allocation failed");
-		result = MTP_ERROR_ALLOC_FAIL;
+		result = MTP_ERROR_OUT_OF_MEMORY;
 		goto OUT;
 	}
 

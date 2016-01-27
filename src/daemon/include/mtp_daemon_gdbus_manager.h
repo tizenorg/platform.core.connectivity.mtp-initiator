@@ -19,16 +19,9 @@
 
 #include "mtp_daemon.h"
 
-gboolean manager_get_raw_devices(
+gboolean manager_get_devices(
 		mtpgdbuslibManager *manager,
 		GDBusMethodInvocation *invocation,
-		gpointer user_data);
-
-gboolean manager_get_device(
-		mtpgdbuslibManager *manager,
-		GDBusMethodInvocation *invocation,
-		gint bus_location,
-		gint device_number,
 		gpointer user_data);
 
 gboolean manager_get_storages(
