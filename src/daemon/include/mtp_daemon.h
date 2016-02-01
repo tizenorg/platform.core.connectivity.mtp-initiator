@@ -41,9 +41,9 @@
 
 #define DLOG_TAG "MTP_INITIATOR"
 
-#define MTP_LOGD(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
-#define MTP_LOGI(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
-#define MTP_LOGW(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
+#define MTP_LOGD(format, arg...) LOG(LOG_DEBUG, DLOG_TAG, format, ##arg)
+#define MTP_LOGI(format, arg...) LOG(LOG_INFO, DLOG_TAG, format, ##arg)
+#define MTP_LOGW(format, arg...) LOG(LOG_WARN, DLOG_TAG, format, ##arg)
 #define MTP_LOGE(format, arg...) LOG(LOG_ERROR, DLOG_TAG, format, ##arg)
 
 #ifndef TIZEN_ERROR_MTP
