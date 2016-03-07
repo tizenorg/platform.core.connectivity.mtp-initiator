@@ -151,7 +151,7 @@ MTPObjectInfo* mtp_daemon_db_get_object_info(int mtp_device,
 		object_info->StorageID = sqlite3_column_int(stmt, 2);
 		object_info->ObjectFormat = sqlite3_column_int(stmt, 4);
 		object_info->ProtectionStatus = sqlite3_column_int(stmt, 5);
-		object_info->ObjectCompressedSize = sqlite3_column_int(stmt, 6);
+		object_info->ObjectCompressedSize = (uint64_t)sqlite3_column_int(stmt, 6);
 		object_info->ThumbFormat = sqlite3_column_int(stmt, 7);
 		object_info->ThumbCompressedSize = sqlite3_column_int(stmt, 8);
 		object_info->ThumbPixWidth = sqlite3_column_int(stmt, 9);
