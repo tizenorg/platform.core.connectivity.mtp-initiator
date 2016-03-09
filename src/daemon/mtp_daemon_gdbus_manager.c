@@ -301,14 +301,10 @@ static void __manager_get_object_thread_func(gpointer user_data)
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 		MTP_LOGI("device_id: %d, device: %p, dest_path: %s", device_id, device, dest_path);
 
+		/* file remove */
+		unlink(dest_path);
+
 		/* file open */
-		if (access(dest_path, F_OK) >= 0) {
-			MTP_LOGE("file exist - dest_path: %s", dest_path);
-
-			if (unlink(dest_path) < 0)
-				MTP_LOGE("remove fail - dest_path: %s", dest_path);
-		}
-
 		fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 		if (fd < 0) {
@@ -375,14 +371,10 @@ static void __manager_get_thumbnail_thread_func(gpointer user_data)
 		device = (LIBMTP_mtpdevice_t *)device_info->device;
 		MTP_LOGI("device_id: %d, device: %p, dest_path: %s", device_id, device, dest_path);
 
+		/* file remove */
+		unlink(dest_path);
+
 		/* file open */
-		if (access(dest_path, F_OK) >= 0) {
-			MTP_LOGE("file exist - dest_path: %s", dest_path);
-
-			if (unlink(dest_path) < 0)
-				MTP_LOGE("remove fail - dest_path: %s", dest_path);
-		}
-
 		fd = open(dest_path, O_WRONLY | O_CREAT | O_EXCL, 0644);
 
 		if (fd < 0) {
