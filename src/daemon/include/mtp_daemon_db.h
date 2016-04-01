@@ -19,17 +19,17 @@
 
 #include "mtp_daemon.h"
 
-mtp_error_e mtp_daemon_db_init(mtp_context *mtp_ctx); //end
-mtp_error_e mtp_daemon_db_deinit(mtp_context *mtp_ctx); // end
-bool mtp_daemon_db_is_exist(int mtp_device, int object_handle, mtp_context *mtp_ctx); // end
+mtp_error_e mtp_daemon_db_init(mtp_context *mtp_ctx);
+mtp_error_e mtp_daemon_db_deinit(mtp_context *mtp_ctx);
+bool mtp_daemon_db_is_exist(int mtp_device, int object_handle, mtp_context *mtp_ctx);
 mtp_error_e mtp_daemon_db_insert(int mtp_device, int mtp_storage,
-	int object_handle, MTPObjectInfo* object_info, mtp_context *mtp_ctx); //end
+	int object_handle, MTPObjectInfo *object_info, mtp_context *mtp_ctx);
 mtp_error_e mtp_daemon_db_delete(int mtp_device, int mtp_storage,
 	int object_handle, mtp_context *mtp_ctx);
 mtp_error_e mtp_daemon_db_update(int mtp_device, int object_handle,
-	MTPObjectInfo* object_info, mtp_context *mtp_ctx);
+	MTPObjectInfo *object_info, mtp_context *mtp_ctx);
 MTPObjectInfo* mtp_daemon_db_get_object_info(int mtp_device,
-	int object_handle, mtp_context *mtp_ctx); //
+	int object_handle, mtp_context *mtp_ctx);
 mtp_error_e mtp_daemon_db_begin(mtp_context *mtp_ctx);
 mtp_error_e mtp_daemon_db_commit(mtp_context *mtp_ctx);
 
