@@ -1,6 +1,6 @@
 Name:       mtp-initiator
 Summary:    mtp(media transfer protocol) initiator
-Version:    1.4.8
+Version:    1.4.9
 Release:    1
 Group:      Network & Connectivity/Other
 License:    Apache-2.0
@@ -20,6 +20,7 @@ BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  python
 BuildRequires:  python-xml
+Requires:  security-config
 
 %description
 A mtp-initiator
