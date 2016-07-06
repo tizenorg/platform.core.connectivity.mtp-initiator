@@ -24,7 +24,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/daemon)
 include_directories(${CMAKE_SOURCE_DIR}/src/daemon/include)
 
 INCLUDE(FindPkgConfig)
-	pkg_check_modules(mtp_pkgs REQUIRED glib-2.0 gio-2.0 libmtp dlog gio-unix-2.0 sqlite3 capi-base-common)
+	pkg_check_modules(mtp_pkgs REQUIRED glib-2.0 gio-2.0 libmtp dlog gio-unix-2.0 sqlite3 capi-base-common libtzplatform-config)
 
 FOREACH(flag ${mtp_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

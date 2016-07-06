@@ -1,6 +1,6 @@
 Name:       mtp-initiator
 Summary:    mtp(media transfer protocol) initiator
-Version:    1.4.9
+Version:    1.4.10
 Release:    1
 Group:      Network & Connectivity/Other
 License:    Apache-2.0
@@ -18,6 +18,7 @@ BuildRequires:  pkgconfig(libmtp)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  pkgconfig(capi-base-common)
+Buildrequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  python
 BuildRequires:  python-xml
 Requires:  security-config
@@ -35,6 +36,11 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version} %{?ARM_DEF}
 
 make %{?jobs:-j%jobs}
+
+%post
+mkdir -p %TZ_SYS_DB/mtp
+chown network_fw:network_fw %TZ_SYS_DB/mtp
+chsmack -a "System::Shared" --transmute %TZ_SYS_DB/mtp
 
 %install
 rm -rf %{buildroot}

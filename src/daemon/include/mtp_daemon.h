@@ -31,6 +31,7 @@
 #include <tizen.h>
 #include <dlog.h>
 #include <libmtp.h>
+#include <tzplatform_config.h>
 #include "mtp_gdbuslib.h"
 
 #define MTP_DBUS_SERVICE	"org.tizen.mtp"
@@ -58,7 +59,7 @@
 		} \
 	} while (0)
 
-#define MTP_DB_FILE "/tmp/.mtp.db"
+#define MTP_DB_FILE tzplatform_mkpath(TZ_SYS_DB, "mtp/.mtp.db")
 #define MTP_DB_TABLE "mtp_object_info"
 #define MTP_ERROR_DB -970
 
